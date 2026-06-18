@@ -4,6 +4,7 @@ import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 import Voluntario from './Voluntario.jsx'
+import Estudiante from './Estudiante.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -13,7 +14,11 @@ function App() {
   { nombre: "Ana", horas: 8, rol: "Program Manager" },
   { nombre: "Luis", horas: 15, rol: "Volunteer" }
 ]
-
+  let estudiantes = [
+  { nombre: "Carlos", edad: 20, curso: "Matemáticas" },
+  { nombre: "María", edad: 22, curso: "Historia" },
+  { nombre: "Jorge", edad: 19, curso: "Ciencias" }
+]
   return (
     <>
       <section id="center">
@@ -26,6 +31,9 @@ function App() {
           <h1>Bienvenido a Teach to Lead</h1>
           {voluntarios.map((p) => (
           <Voluntario key={p.nombre} nombre={p.nombre} horas={p.horas} rol={p.rol} />
+          ))}
+          {estudiantes.map((e) => (
+          <Estudiante key={e.nombre} nombre={e.nombre} edad={e.edad} curso={e.curso} />
           ))}
           <p>
             Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
