@@ -9,16 +9,23 @@ import Estudiante from './Estudiante.jsx'
 function App() {
   const [count, setCount] = useState(0)
 
-  let voluntarios = [
+  const [voluntarios, setVoluntarios] = useState([
   { nombre: "Sophi", horas: 12, rol: "Executive Director" },
   { nombre: "Ana", horas: 8, rol: "Program Manager" },
   { nombre: "Luis", horas: 15, rol: "Volunteer" }
-]
-  let estudiantes = [
+  ])
+
+  const [estudiantes, setEstudiantes] = useState([
   { nombre: "Carlos", edad: 20, curso: "Matemáticas" },
   { nombre: "María", edad: 22, curso: "Historia" },
   { nombre: "Jorge", edad: 19, curso: "Ciencias" }
-]
+  ])
+  function agregarVoluntario() {
+  setVoluntarios([...voluntarios, { nombre: "Nuevo", horas: 0, rol: "Volunteer" }])
+}
+  function agregarEstudiante() {
+  setEstudiantes([...estudiantes, { nombre: "Nuevo", edad: 0, curso: "" }])
+}
   return (
     <>
       <section id="center">
@@ -35,6 +42,8 @@ function App() {
           {estudiantes.map((e) => (
           <Estudiante key={e.nombre} nombre={e.nombre} edad={e.edad} curso={e.curso} />
           ))}
+          <button onClick={agregarVoluntario}>Agregar voluntario de prueba</button>
+          <button onClick={agregarEstudiante}>Agregar estudiante de prueba</button>
           <p>
             Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
           </p>
