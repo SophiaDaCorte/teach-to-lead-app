@@ -1,6 +1,14 @@
+import './components/Cards.css'
+
 function Estudiante(props) {
   return (
-    <p>{props.nombre} - {props.edad} años - {props.curso == "Matemáticas" ? "Matemáticas" : props.curso == "Historia" ? "Historia" : "Ciencias"}</p>
+    <div className="persona-card">
+      <div>
+        <p className="persona-nombre">{props.nombre}</p>
+        <p className="persona-detalle">{props.edad} años — {props.curso}</p>
+      </div>
+    </div>
   )
 }
+
 export default Estudiante

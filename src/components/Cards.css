@@ -1,0 +1,32 @@
+.persona-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 14px 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.persona-nombre {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.persona-detalle {
+  font-size: 0.9rem;
+  color: #777;
+  margin: 2px 0 0;
+}
+
+.badge-admin {
+  background-color: #fae9a8;
+  color: #7a5c00;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
