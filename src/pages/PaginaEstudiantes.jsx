@@ -1,23 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Estudiante from '../Estudiante.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './PaginaEstudiantes.css'
+import { supabase } from '../supabase.js'
 
 function PaginaEstudiantes() {
   const navigate = useNavigate()
   const doodles = useDoodles()
 
-  const [estudiantes, setEstudiantes] = useState([
-    { nombre: "Carlos", edad: 20, curso: "Matemáticas" },
-    { nombre: "María", edad: 22, curso: "Historia" },
-    { nombre: "Jorge", edad: 19, curso: "Ciencias" }
-  ])
+  const [estudiantes, setEstudiantes] = useState([])
 
   function agregarEstudiante() {
     setEstudiantes([...estudiantes, { nombre: "Nuevo", edad: 0, curso: "" }])
   }
+
+  useEffect(() => {
+    async function cargarEstudiantes() {
+      const { data, error } = await supabase.from('estudiantes').select('*')
+      if (error) {
+        console.error('Error fetching estudiantes:', error)
+      } else {
+        setEstudiantes(data)
+      }
+    }
+
+    cargarEstudiantes()
+  }, [])
 
   return (
     <div className="page-wrapper">
