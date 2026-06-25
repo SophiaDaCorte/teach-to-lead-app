@@ -1,19 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Voluntario from '../Voluntario.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './PaginaVoluntarios.css'
+import { supabase } from '../supabase.js'
 
 function PaginaVoluntarios() {
   const navigate = useNavigate()
   const doodles = useDoodles()
 
-  const [voluntarios, setVoluntarios] = useState([
-    { nombre: "Sophi", horas: 12, rol: "Executive Director" },
-    { nombre: "Ana", horas: 8, rol: "Program Manager" },
-    { nombre: "Luis", horas: 15, rol: "Volunteer" }
-  ])
+  const [voluntarios, setVoluntarios] = useState([])
+
+  useEffect(() => {
+    async function cargarVoluntarios() {
+      const { data, error } = await supabase.from('voluntarios').select('*')
+      if (error) {
+        console.error('Error fetching voluntarios:', error)
+      } else {
+        setVoluntarios(data)
+      }
+    }
+
+    cargarVoluntarios()
+  }, [])  
 
   function agregarVoluntario() {
     setVoluntarios([...voluntarios, { nombre: "Nuevo", horas: 0, rol: "Volunteer" }])
