@@ -26,20 +26,23 @@ function PaginaVoluntarios() {
   }, [])  
 
   async function agregarVoluntario() {
-    const nuevoVoluntario = {
-      nombre: 'Nuevo Voluntario',
-      horas: 0,
-      rol: 'Voluntario de prueba'
-    }
-
-    const { data, error } = await supabase.from('voluntarios').insert([nuevoVoluntario]).select()
-    if (error) {
-      console.error('Error adding voluntario:', error)
-    } else {
-      setVoluntarios([...voluntarios, data[0]])
-    }
+  const nuevoVoluntario = {
+    nombre: 'Nuevo Voluntario',
+    horas: 0,
+    rol: 'Voluntario de prueba'
   }
+  const { data, error } = await supabase.from('voluntarios').insert([nuevoVoluntario]).select()
+  if (error) {
+    console.error('Error adding voluntario:', error)
+  } else {
+    setVoluntarios([...voluntarios, data[0]])
+  }
+}
 
+async function cerrarSesion() {
+  await supabase.auth.signOut()
+  navigate('/')
+}
   return (
     <div className="page-wrapper">
       <div className="doodle-layer">
@@ -60,6 +63,7 @@ function PaginaVoluntarios() {
         </div>
 
         <button className="add-btn" onClick={agregarVoluntario}>+ Agregar voluntario de prueba</button>
+        <button onClick={cerrarSesion}>Cerrar sesión</button>
       </div>
     </div>
   )
