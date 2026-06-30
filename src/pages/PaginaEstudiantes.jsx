@@ -12,9 +12,20 @@ function PaginaEstudiantes() {
 
   const [estudiantes, setEstudiantes] = useState([])
 
-  function agregarEstudiante() {
-    setEstudiantes([...estudiantes, { nombre: "Nuevo", edad: 0, curso: "" }])
-  }
+  async function agregarEstudiante() {
+    const nuevoEstudiante = {
+      nombre: 'Nuevo Estudiante',
+      edad: 18,
+      curso: 'Curso de prueba'
+    }
+
+    const { data, error } = await supabase.from('estudiantes').insert([nuevoEstudiante]).select()
+    if (error) {
+      console.error('Error adding estudiante:', error)
+    } else {
+      setEstudiantes([...estudiantes, data[0]])
+    }
+  } 
 
   useEffect(() => {
     async function cargarEstudiantes() {

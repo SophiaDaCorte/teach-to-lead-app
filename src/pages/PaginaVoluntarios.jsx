@@ -25,8 +25,19 @@ function PaginaVoluntarios() {
     cargarVoluntarios()
   }, [])  
 
-  function agregarVoluntario() {
-    setVoluntarios([...voluntarios, { nombre: "Nuevo", horas: 0, rol: "Volunteer" }])
+  async function agregarVoluntario() {
+    const nuevoVoluntario = {
+      nombre: 'Nuevo Voluntario',
+      horas: 0,
+      rol: 'Voluntario de prueba'
+    }
+
+    const { data, error } = await supabase.from('voluntarios').insert([nuevoVoluntario]).select()
+    if (error) {
+      console.error('Error adding voluntario:', error)
+    } else {
+      setVoluntarios([...voluntarios, data[0]])
+    }
   }
 
   return (
