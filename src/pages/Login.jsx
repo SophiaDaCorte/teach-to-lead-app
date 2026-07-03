@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
@@ -7,8 +7,6 @@ import './Login.css'
 
 function Login() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const rol = searchParams.get('rol')
   const doodles = useDoodles()
 
   const [email, setEmail] = useState("")
@@ -21,10 +19,20 @@ function Login() {
     if (error) {
       setError("Email o contraseña incorrectos")
     } else {
-      if (rol === 'voluntario') {
-        navigate('/voluntarios')
+      const { data: perfil, error: perfilError } = await supabase
+        .from('perfiles')
+        .select('*')
+        .eq('id', data.user.id)
+
+      if (perfilError) {
+        setError("Error al cargar el perfil")
       } else {
-        navigate('/estudiantes')
+        const rol = perfil[0].rol
+        if (rol === 'admin' || rol === 'staff' || rol === 'tutor' || rol === 'marketing' || rol === 'creacion') {
+          navigate('/voluntarios')
+        } else {
+          navigate('/estudiantes')
+        }
       }
     }
   }
@@ -36,16 +44,14 @@ function Login() {
           <Doodle key={i} {...d} />
         ))}
       </div>
-      
+
       <button className="login-back" onClick={() => navigate('/')}>
         ← Inicio
       </button>
 
       <div className="login-card">
         <h1 className="login-title">Teach to Lead</h1>
-        <p className="login-subtitle">
-          {rol === 'voluntario' ? 'Acceso para voluntarios' : 'Acceso para estudiantes'}
-        </p>
+        <p className="login-subtitle">Inicia sesión</p>
 
         <input
           className="login-input"

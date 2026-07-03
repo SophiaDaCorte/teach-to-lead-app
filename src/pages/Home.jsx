@@ -98,12 +98,12 @@ function Home() {
           <p className="home-question">¿Quién eres?</p>
 
           <div className="home-buttons">
-            <button className="btn-lime" onClick={() => navigate('/login?rol=voluntario')}>
-              Soy voluntario
-            </button>
-            <button className="btn-teal" onClick={() => navigate('/login?rol=estudiantes')}>
-              Soy estudiante
-            </button>
+          <button className="btn-lime" onClick={() => navigate('/login')}>
+          Soy voluntario
+          </button>
+          <button className="btn-teal" onClick={() => navigate('/login')}>
+          Soy estudiante
+          </button>
           </div>
         </div>
       </div>
