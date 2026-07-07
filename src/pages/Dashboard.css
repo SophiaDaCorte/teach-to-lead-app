@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+.dash-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.dash-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.dash-name {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.dash-role {
+  font-size: 13px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.dash-top-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dash-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 0.5px solid #ddd;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #555;
+}
+
+.dash-signout {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #555;
+  border: 0.5px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: white;
+  cursor: pointer;
+}
+
+.dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.metric {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.metric-n {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.metric-l {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.dash-sl {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  margin-top: 1.25rem;
+}
+
+.dash-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.dash-mod {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.dash-mod:hover { border-color: #ccc; }
+
+.dash-mod-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.dash-mod-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 3px;
+}
+
+.dash-mod-desc {
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+.dash-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  float: right;
+}
+
+.badge-new { background: #FCEBEB; color: #A32D2D; }
+.badge-warn { background: #FAEEDA; color: #633806; }
+
+.dash-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 10px;
+}
+
+.dash-ann-row {
+  padding: 10px 0;
+  border-bottom: 0.5px solid #eee;
+}
+
+.dash-ann-row:last-of-type { border-bottom: none; }
+
+.dash-ann-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.dash-ann-meta {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.dash-lime-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dash-mod-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dash-mod-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dash-mod-emoji {
+  font-size: 24px;
+}
