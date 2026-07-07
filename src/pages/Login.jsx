@@ -17,25 +17,28 @@ function Login() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError("Email o contraseña incorrectos")
+      setError("Email or password is incorrect")
     } else {
       const { data: perfil, error: perfilError } = await supabase
         .from('perfiles')
         .select('*')
         .eq('id', data.user.id)
 
-      if (perfilError) {
-        setError("Error al cargar el perfil")
+    if (perfilError) {
+      setError("Error fetching user profile")
+    } else {
+      const rol = perfil[0].rol
+      console.log('rol recibido:', rol)
+      if (rol === 'staff_admin') {
+        navigate('/dashboard')
+      } else if (rol === 'staff_marketing' || rol === 'staff_regular' || rol === 'marketing_interns' || rol === 'tutors' || rol === 'creation') {
+        navigate('/voluntarios')
       } else {
-        const rol = perfil[0].rol
-        if (rol === 'admin' || rol === 'staff' || rol === 'tutor' || rol === 'marketing' || rol === 'creacion') {
-          navigate('/voluntarios')
-        } else {
-          navigate('/estudiantes')
-        }
+        navigate('/estudiantes')
       }
     }
   }
+}
 
   return (
     <div className="login-wrapper">
@@ -46,12 +49,12 @@ function Login() {
       </div>
 
       <button className="login-back" onClick={() => navigate('/')}>
-        ← Inicio
+        ← Home
       </button>
 
       <div className="login-card">
         <h1 className="login-title">Teach to Lead</h1>
-        <p className="login-subtitle">Inicia sesión</p>
+        <p className="login-subtitle">Log in to your account</p>
 
         <input
           className="login-input"
@@ -64,7 +67,7 @@ function Login() {
         <input
           className="login-input"
           type="password"
-          placeholder="Contraseña"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -72,7 +75,7 @@ function Login() {
         {error && <p className="login-error">{error}</p>}
 
         <button className="login-btn" onClick={iniciarSesion}>
-          Entrar
+          Sign In
         </button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import PaginaVoluntarios from './pages/PaginaVoluntarios.jsx'
 import PaginaEstudiantes from './pages/PaginaEstudiantes.jsx'
 import Login from './pages/Login.jsx'
 import RutaProtegida from './components/RutaProtegida.jsx'
+import Dashboard from './pages/Dashboard.jsx'
 
 function App() {
   return (
@@ -27,6 +28,14 @@ function App() {
             </RutaProtegida>
           }>  
       </Route>
+      <Route
+          path="/dashboard"
+          element={
+            <RutaProtegida>
+              <Dashboard />
+            </RutaProtegida>
+          }>
+        </Route>
       </Routes>
     </BrowserRouter>
   )

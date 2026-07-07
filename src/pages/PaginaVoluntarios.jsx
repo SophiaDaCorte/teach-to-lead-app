@@ -11,6 +11,7 @@ function PaginaVoluntarios() {
   const doodles = useDoodles()
 
   const [voluntarios, setVoluntarios] = useState([])
+  const [perfil, setPerfil] = useState(null)
 
   useEffect(() => {
     async function cargarVoluntarios() {
@@ -23,6 +24,19 @@ function PaginaVoluntarios() {
     }
 
     cargarVoluntarios()
+  }, [])  
+
+  useEffect(() => {
+    async function cargarPerfil() {
+      const { data: session } = await supabase.auth.getSession()
+      if (session.session) {
+        const { data }= await supabase
+          .from('perfiles')
+          .select('*').eq('id', session.session.user.id).single()
+        setPerfil(data)
+      }
+    }
+    cargarPerfil()
   }, [])  
 
   async function agregarVoluntario() {
@@ -53,7 +67,9 @@ async function cerrarSesion() {
 
       <div className="page-content">
         <button className="back-btn" onClick={() => navigate('/')}>← Volver al inicio</button>
-
+        {perfil && (
+          <p>Hola, {perfil?.nombre || 'Usuario'} -{perfil.rol}</p>
+        )}
         <h1 className="page-title">Voluntarios</h1>
 
         <div className="lista">
