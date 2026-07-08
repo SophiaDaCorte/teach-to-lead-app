@@ -82,23 +82,26 @@ function Dashboard() {
 
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
-
+         
+         {roles.includes('staff_admin') && (
           <div className="dash-mod">
             <div className="dash-mod-top">
-              <span className="dash-mod-emoji">👥</span>
+              <span className="dash-mod-emoji">👑</span>
             </div>
-            <div className="dash-mod-title">All volunteers</div>
-            <div className="dash-mod-desc">View, add and edit all roles</div>
+            <div className="dash-mod-title">Admin panel</div>
+            <div className="dash-mod-desc">Manage all users and roles</div>
           </div>
+         )}
 
-          <div className="dash-mod">
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">📜</span>
-              <span className="dash-badge badge-new">3 new</span>
+         {roles.includes('staff_admin') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📜</span>
+              </div>
+              <div className="dash-mod-title">Certificates</div>
+              <div className="dash-mod-desc">Review and generate</div>
             </div>
-            <div className="dash-mod-title">Certificates</div>
-            <div className="dash-mod-desc">Review and generate</div>
-          </div>
+          )}
 
           <div className="dash-mod">
             <div className="dash-mod-top">
@@ -124,14 +127,16 @@ function Dashboard() {
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
-          <div className="dash-mod">
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">🏖️</span>
-              <span className="dash-badge badge-warn">2 new</span>
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🏖️</span>
+                <span className="dash-badge badge-warn">2 new</span>
+              </div>
+              <div className="dash-mod-title">Week off</div>
+              <div className="dash-mod-desc">Review requests</div>
             </div>
-            <div className="dash-mod-title">Week off</div>
-            <div className="dash-mod-desc">Review requests</div>
-          </div>
+          )}
 
           <div className="dash-mod">
             <div className="dash-mod-top">

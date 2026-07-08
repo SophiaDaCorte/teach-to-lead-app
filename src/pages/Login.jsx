@@ -29,12 +29,10 @@ function Login() {
     } else {
       const roles = perfil[0].roles
       console.log('roles recibidos:', roles)
-      if (roles.includes('staff_admin')) {
-        navigate('/dashboard')
-      } else if (roles.includes('staff_marketing') || roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('tutors') || roles.includes('creation')) {
-        navigate('/voluntarios')
-      } else {
+      if (roles.includes('estudiante')) {
         navigate('/estudiantes')
+      } else {
+        navigate('/dashboard')
       }
     }
   }
