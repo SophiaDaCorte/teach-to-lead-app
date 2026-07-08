@@ -27,11 +27,11 @@ function Login() {
     if (perfilError) {
       setError("Error fetching user profile")
     } else {
-      const rol = perfil[0].rol
-      console.log('rol recibido:', rol)
-      if (rol === 'staff_admin') {
+      const roles = perfil[0].roles
+      console.log('roles recibidos:', roles)
+      if (roles.includes('staff_admin')) {
         navigate('/dashboard')
-      } else if (rol === 'staff_marketing' || rol === 'staff_regular' || rol === 'marketing_interns' || rol === 'tutors' || rol === 'creation') {
+      } else if (roles.includes('staff_marketing') || roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('tutors') || roles.includes('creation')) {
         navigate('/voluntarios')
       } else {
         navigate('/estudiantes')

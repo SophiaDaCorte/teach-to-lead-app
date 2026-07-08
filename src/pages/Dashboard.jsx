@@ -31,6 +31,8 @@ function Dashboard() {
 
   if (!perfil) return <p>Loading...</p>
 
+  const roles = perfil.roles
+
   return (
     <div className="page-wrapper">
       <div className="doodle-layer">

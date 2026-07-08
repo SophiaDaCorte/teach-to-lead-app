@@ -86,20 +86,20 @@ function Home() {
           <h1 className="home-logo">Teach to Lead</h1>
 
           <div className="home-hero">
-            <span className="highlight-yellow">la comunidad</span>
+            <span className="highlight-yellow">Youth Community</span>
             <br />
-            liderada por jóvenes
+            Lead 
           </div>
 
           <p className="home-subtitle">
-            conectando voluntarios y estudiantes para crear un cambio real a través de la educación
+            connecting with volunteers and students to create a better future in education.
           </p>
 
-          <p className="home-question">¿Quién eres?</p>
+          <p className="home-question">Who are you?</p>
 
           <div className="home-buttons">
           <button className="btn-lime" onClick={() => navigate('/login')}>
-          Soy voluntario
+          I am a volunteer
           </button>
           <button className="btn-teal" onClick={() => navigate('/login')}>
           Soy estudiante
