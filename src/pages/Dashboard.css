@@ -8,6 +8,7 @@
   max-width: 700px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+  text-align: left;
 }
 
 .dash-topbar {
@@ -25,9 +26,9 @@
 }
 
 .dash-role {
-  font-size: 13px;
+  font-size: 16px;
   color: #999;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 
 .dash-top-right {
@@ -205,4 +206,7 @@
 
 .dash-mod-emoji {
   font-size: 24px;
+}
+.dash-topbar > div:first-child {
+  text-align: left;
 }

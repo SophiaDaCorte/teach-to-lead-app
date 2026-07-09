@@ -33,6 +33,18 @@ function Dashboard() {
 
   const roles = perfil.roles
 
+  function mostrarRol(rol) {
+    if (rol === 'staff_admin') return 'Executive Director'
+    if (rol === 'staff_marketing') return 'Marketing Director'
+    if (rol === 'staff_regular') return 'Staff'
+    if (rol === 'marketing_interns') return 'Marketing Intern'
+    if (rol === 'tutors') return 'Tutor'
+    if (rol === 'creation') return 'Creation Team'
+    if (rol === 'volunteer_coordinator') return 'Volunteer Coordinator'
+    if (rol === 'director_of_programs') return 'Director of Programs'
+    return rol
+ }
+
   return (
     <div className="page-wrapper">
       <div className="doodle-layer">
@@ -46,7 +58,7 @@ function Dashboard() {
         <div className="dash-topbar">
           <div>
             <h1 className="dash-name">Hey, {perfil.nombre} 👋</h1>
-            <p className="dash-role">Executive Director · Teach to Lead</p>
+            <p className="dash-role">{mostrarRol(perfil.roles[0])} · Teach to Lead</p>
           </div>
           <div className="dash-top-right">
             <button className="dash-icon-btn" aria-label="Notifications">
