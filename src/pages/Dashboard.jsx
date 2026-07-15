@@ -32,7 +32,6 @@ function Dashboard() {
   if (!perfil) return <p>Loading...</p>
 
   const roles = perfil.roles
-  console.log('perfil completo:', perfil)
 
   function mostrarRol(rol) {
     if (rol === 'staff_admin') return 'Staff'
@@ -44,7 +43,7 @@ function Dashboard() {
     if (rol === 'volunteer_coordinator') return 'Staff'
     if (rol === 'director_of_programs') return 'Staff'
     return rol
- }
+  }
 
   return (
     <div className="page-wrapper">
@@ -95,18 +94,19 @@ function Dashboard() {
 
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
-         
-         {roles.includes('staff_admin') && (
-          <div className="dash-mod">
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">👑</span>
-            </div>
-            <div className="dash-mod-title">Admin panel</div>
-            <div className="dash-mod-desc">Manage all users and roles</div>
-          </div>
-         )}
 
-         {roles.includes('staff_admin') && (
+          {/* Staff Admin only */}
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">👑</span>
+              </div>
+              <div className="dash-mod-title">Admin panel</div>
+              <div className="dash-mod-desc">Manage all users and roles</div>
+            </div>
+          )}
+
+          {roles.includes('staff_admin') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📜</span>
@@ -116,6 +116,124 @@ function Dashboard() {
             </div>
           )}
 
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🏖️</span>
+                <span className="dash-badge badge-warn">2 new</span>
+              </div>
+              <div className="dash-mod-title">Week off</div>
+              <div className="dash-mod-desc">Review all requests</div>
+            </div>
+          )}
+
+          {/* Staff Marketing only */}
+          {roles.includes('staff_marketing') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📊</span>
+              </div>
+              <div className="dash-mod-title">Team hours</div>
+              <div className="dash-mod-desc">View and edit marketing hours</div>
+            </div>
+          )}
+
+          {roles.includes('staff_marketing') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🎯</span>
+              </div>
+              <div className="dash-mod-title">Content topics</div>
+              <div className="dash-mod-desc">Manage team topics</div>
+            </div>
+          )}
+
+          {/* Marketing interns + staff_marketing */}
+          {(roles.includes('marketing_interns') || roles.includes('staff_marketing')) && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🎬</span>
+              </div>
+              <div className="dash-mod-title">My content</div>
+              <div className="dash-mod-desc">Upload videos and posts</div>
+            </div>
+          )}
+
+          {/* Tutors only */}
+          {roles.includes('tutors') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🎓</span>
+              </div>
+              <div className="dash-mod-title">My class</div>
+              <div className="dash-mod-desc">Students, attendance and grades</div>
+            </div>
+          )}
+
+          {roles.includes('tutors') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📖</span>
+              </div>
+              <div className="dash-mod-title">Student book</div>
+              <div className="dash-mod-desc">View and share course book</div>
+            </div>
+          )}
+
+          {roles.includes('tutors') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📸</span>
+              </div>
+              <div className="dash-mod-title">Class photos</div>
+              <div className="dash-mod-desc">Upload weekly class photos</div>
+            </div>
+          )}
+
+          {/* Creation only */}
+          {roles.includes('creation') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🗂️</span>
+              </div>
+              <div className="dash-mod-title">My projects</div>
+              <div className="dash-mod-desc">View assigned projects</div>
+            </div>
+          )}
+
+          {roles.includes('creation') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">✔️</span>
+              </div>
+              <div className="dash-mod-title">What I've done</div>
+              <div className="dash-mod-desc">Log your completed work</div>
+            </div>
+          )}
+
+          {/* Week off for non-admin roles */}
+          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation')) && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🏖️</span>
+              </div>
+              <div className="dash-mod-title">Week off</div>
+              <div className="dash-mod-desc">Request a week off</div>
+            </div>
+          )}
+
+          {/* Weekly report */}
+          {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📝</span>
+              </div>
+              <div className="dash-mod-title">Weekly report</div>
+              <div className="dash-mod-desc">Submit your weekly report</div>
+            </div>
+          )}
+
+          {/* Shared modules - everyone sees these */}
           <div className="dash-mod">
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">⏰</span>
@@ -140,23 +258,12 @@ function Dashboard() {
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
-          {roles.includes('staff_admin') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🏖️</span>
-                <span className="dash-badge badge-warn">2 new</span>
-              </div>
-              <div className="dash-mod-title">Week off</div>
-              <div className="dash-mod-desc">Review requests</div>
-            </div>
-          )}
-
           <div className="dash-mod">
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">✅</span>
             </div>
             <div className="dash-mod-title">Checklists</div>
-            <div className="dash-mod-desc">Edit anyone's tasks</div>
+            <div className="dash-mod-desc">My weekly tasks</div>
           </div>
 
           <div className="dash-mod">
@@ -164,7 +271,7 @@ function Dashboard() {
               <span className="dash-mod-emoji">📤</span>
             </div>
             <div className="dash-mod-title">Files</div>
-            <div className="dash-mod-desc">View all submitted</div>
+            <div className="dash-mod-desc">Upload and share files</div>
           </div>
 
         </div>
