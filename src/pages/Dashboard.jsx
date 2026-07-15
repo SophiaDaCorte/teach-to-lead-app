@@ -74,22 +74,31 @@ function Dashboard() {
         </div>
 
         <div className="dash-metrics">
-          <div className="metric">
+        {roles.includes('staff_admin') && (
+            <div className="metric">
             <div className="metric-n">24</div>
             <div className="metric-l">Total volunteers</div>
-          </div>
-          <div className="metric">
+            </div>
+        )}
+
+        <div className="metric">
             <div className="metric-n">47</div>
             <div className="metric-l">My hours</div>
-          </div>
-          <div className="metric">
+        </div>
+
+        {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
+            <div className="metric">
             <div className="metric-n">3</div>
             <div className="metric-l">Cert. requests</div>
-          </div>
-          <div className="metric">
+            </div>
+        )}
+
+        {roles.includes('staff_admin') && (
+            <div className="metric">
             <div className="metric-n">2</div>
             <div className="metric-l">Week off requests</div>
-          </div>
+            </div>
+        )}
         </div>
 
         <p className="dash-sl">Quick access</p>
@@ -230,6 +239,58 @@ function Dashboard() {
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
+            </div>
+          )}
+
+          {/* Volunteer Coordinator */}
+          {roles.includes('volunteer_coordinator') && (
+            <div className="dash-mod">
+                <div className="dash-mod-top">
+                <span className="dash-mod-emoji">⏱️</span>
+             </div>
+             <div className="dash-mod-title">Tutor hours</div>
+             <div className="dash-mod-desc">View and edit tutors' hours</div>
+            </div>
+          )}
+
+          {roles.includes('volunteer_coordinator') && (
+          <div className="dash-mod">
+                <div className="dash-mod-top">
+                <span className="dash-mod-emoji">🎨</span>
+             </div>
+             <div className="dash-mod-title">Creation hours</div>
+             <div className="dash-mod-desc">View and edit creation hours</div>
+            </div>
+            )}
+
+          {roles.includes('volunteer_coordinator') && (
+          <div className="dash-mod">
+                <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📸</span>
+             </div>
+             <div className="dash-mod-title">Class photos</div>
+             <div className="dash-mod-desc">Review weekly tutor photos</div>
+            </div>
+          )}
+
+          {/* Director of Programs */}
+          {roles.includes('director_of_programs') && (
+            <div className="dash-mod">
+                <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📜</span>
+             </div>
+             <div className="dash-mod-title">Certificates</div>
+             <div className="dash-mod-desc">Generate hour certificates</div>
+            </div>
+          )}
+
+          {roles.includes('director_of_programs') && (
+          <div className="dash-mod">
+                <div className="dash-mod-top">
+                <span className="dash-mod-emoji">👥</span>
+             </div>
+             <div className="dash-mod-title">Volunteers</div>
+             <div className="dash-mod-desc">View all volunteers</div>
             </div>
           )}
 
