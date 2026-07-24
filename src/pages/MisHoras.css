@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+
+.horas-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.horas-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.horas-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 2rem;
+}
+
+.horas-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.horas-metric {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.horas-metric.total {
+  background: #f0f7e6;
+  border-color: #a9cb5a;
+}
+
+.horas-n {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a1a1a;
+}
+
+.horas-l {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.horas-updated {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 2rem;
+}
+
+.horas-cert-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.horas-empty {
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 3rem;
+}

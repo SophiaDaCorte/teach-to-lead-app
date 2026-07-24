@@ -5,6 +5,7 @@ import PaginaEstudiantes from './pages/PaginaEstudiantes.jsx'
 import Login from './pages/Login.jsx'
 import RutaProtegida from './components/RutaProtegida.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import MisHoras from './pages/MisHoras.jsx'
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
           element={
             <RutaProtegida>
               <Dashboard />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route
+          path="/mis-horas"
+          element={
+            <RutaProtegida>
+              <MisHoras />
             </RutaProtegida>
           }>
         </Route>

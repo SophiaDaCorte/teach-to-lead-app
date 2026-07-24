@@ -295,7 +295,7 @@ function Dashboard() {
           )}
 
           {/* Shared modules - everyone sees these */}
-          <div className="dash-mod">
+          <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">⏰</span>
             </div>
