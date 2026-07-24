@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+.check-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.check-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.check-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+}
+
+.check-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.check-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1.5px solid #eee;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.check-input:focus {
+  border-color: #2d2a86;
+}
+
+.check-add-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.check-item:hover {
+  border-color: #ccc;
+}
+
+.check-item.completada {
+  background: #f9f9f9;
+  border-color: #a9cb5a;
+}
+
+.check-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: white;
+  font-size: 14px;
+  color: #a9cb5a;
+}
+
+.check-item.completada .check-box {
+  border-color: #a9cb5a;
+  background: #f0f7e6;
+}
+
+.check-tarea {
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+.check-item.completada .check-tarea {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.check-footer {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+}
+
+.check-empty {
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.check-input {
+  color-scheme: light;
+}
+
+.check-input:-webkit-autofill,
+.check-input:-webkit-autofill:hover,
+.check-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #1a1a1a !important;
+  background-color: white !important;
+}
+
+.check-delete {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #E24B4A;
+  font-size: 16px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.check-delete:hover {
+  color: #A32D2D;
+}

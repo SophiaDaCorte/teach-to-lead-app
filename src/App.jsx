@@ -6,6 +6,7 @@ import Login from './pages/Login.jsx'
 import RutaProtegida from './components/RutaProtegida.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MisHoras from './pages/MisHoras.jsx'
+import Checklist from './pages/Checklist.jsx'
 
 function App() {
   return (
@@ -42,6 +43,12 @@ function App() {
           element={
             <RutaProtegida>
               <MisHoras />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/checklist" element={
+            <RutaProtegida>
+              <Checklist />
             </RutaProtegida>
           }>
         </Route>

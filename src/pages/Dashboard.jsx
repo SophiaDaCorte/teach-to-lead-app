@@ -319,7 +319,7 @@ function Dashboard() {
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
-          <div className="dash-mod">
+          <div className="dash-mod" onClick={() => navigate('/Checklist')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">✅</span>
             </div>
