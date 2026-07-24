@@ -12,7 +12,7 @@ function Checklist() {
   const [nuevaTarea, setNuevaTarea] = useState("")
   const [userId, setUserId] = useState(null)
   const [usuarios, setUsuarios] = useState([])
-  const [asignadoA, setAsignadoA] = useState("")
+  const [asignadoA, setAsignadoA] = useState([])
   const [tareaAdmin, setTareaAdmin] = useState("")
   const [perfil, setPerfil] = useState(null)
   const [grupoAbierto, setGrupoAbierto] = useState(null)
@@ -70,13 +70,25 @@ function Checklist() {
     Creation: '🎨',
   }
 
+  function togglePersona(id) {
+    if (asignadoA.includes(id)) {
+      setAsignadoA(asignadoA.filter(a => a !== id))
+    } else {
+      setAsignadoA([...asignadoA, id])
+    }
+  }
+
   async function asignarTarea() {
-    if (!tareaAdmin.trim() || !asignadoA) return
-    await supabase
-      .from('checklists')
-      .insert({ asignado_a: asignadoA, creado_por: userId, tarea: tareaAdmin })
+    if (!tareaAdmin.trim() || asignadoA.length === 0) return
+    for (const id of asignadoA) {
+      await supabase.from('checklists').insert({
+        asignado_a: id,
+        creado_por: userId,
+        tarea: tareaAdmin
+      })
+    }
     setTareaAdmin("")
-    setAsignadoA("")
+    setAsignadoA([])
   }
 
   async function agregarTarea() {
@@ -134,7 +146,14 @@ function Checklist() {
 
         {perfil && (perfil.roles.includes('staff_admin') || perfil.roles.includes('volunteer_coordinator') || perfil.roles.includes('staff_marketing')) && (
           <div className="acc-wrap">
-            <p className="acc-label">Assign task to</p>
+            <p className="acc-label">
+              Assign task to
+              {asignadoA.length > 0 && (
+                <span style={{marginLeft: '8px', fontSize: '11px', color: '#a9cb5a', fontWeight: '600'}}>
+                  {asignadoA.length} selected
+                </span>
+              )}
+            </p>
 
             {Object.entries(grupos).map(([nombre, personas]) => {
               if (personas.length === 0) return null
@@ -145,33 +164,37 @@ function Checklist() {
                     <div className="acc-left">
                       <span className="acc-emoji">{grupoEmojis[nombre]}</span>
                       {nombre}
+                      {personas.some(p => asignadoA.includes(p.id)) && (
+                        <span style={{fontSize: '10px', background: '#f0f7e6', color: '#a9cb5a', padding: '2px 6px', borderRadius: '4px', fontWeight: '600'}}>
+                          {personas.filter(p => asignadoA.includes(p.id)).length} ✓
+                        </span>
+                      )}
                     </div>
                     <i className={`ti ti-chevron-down acc-chevron ${estaAbierto ? 'open' : ''}`} aria-hidden="true"></i>
                   </div>
 
                   {estaAbierto && (
                     <div className="acc-body">
-                      <div className="acc-all-btn" onClick={async () => {
-                        for (const persona of personas) {
-                          if (!tareaAdmin.trim()) continue
-                          await supabase.from('checklists').insert({
-                            asignado_a: persona.id,
-                            creado_por: userId,
-                            tarea: tareaAdmin
-                          })
+                      <div className="acc-all-btn" onClick={() => {
+                        const ids = personas.map(p => p.id)
+                        const todosSeleccionados = ids.every(id => asignadoA.includes(id))
+                        if (todosSeleccionados) {
+                          setAsignadoA(asignadoA.filter(a => !ids.includes(a)))
+                        } else {
+                          setAsignadoA([...new Set([...asignadoA, ...ids])])
                         }
-                        setTareaAdmin("")
-                        setGrupoAbierto(null)
                       }}>
                         <i className="ti ti-users" aria-hidden="true"></i>
-                        Assign to all {nombre.toLowerCase()}
+                        {personas.every(p => asignadoA.includes(p.id))
+                          ? `Deselect all ${nombre.toLowerCase()}`
+                          : `Select all ${nombre.toLowerCase()}`}
                       </div>
 
                       {personas.map(u => (
                         <div
                           key={u.id}
-                          className={`acc-person ${asignadoA === u.id ? 'selected' : ''}`}
-                          onClick={() => setAsignadoA(asignadoA === u.id ? "" : u.id)}
+                          className={`acc-person ${asignadoA.includes(u.id) ? 'selected' : ''}`}
+                          onClick={() => togglePersona(u.id)}
                         >
                           <div className="acc-avatar" style={{background: '#EEEDFE', color: '#3C3489'}}>
                             {u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
@@ -180,7 +203,7 @@ function Checklist() {
                             <span style={{fontSize:'13px', color:'#1a1a1a', lineHeight:'1.2'}}>{u.nombre}</span>
                             <span style={{fontSize:'11px', color:'#aaa', lineHeight:'1.2'}}>{u.titulo}</span>
                           </div>
-                          {asignadoA === u.id && <i className="ti ti-check acc-check" aria-hidden="true"></i>}
+                          {asignadoA.includes(u.id) && <i className="ti ti-check acc-check" aria-hidden="true"></i>}
                         </div>
                       ))}
                     </div>
@@ -198,7 +221,9 @@ function Checklist() {
                 onChange={(e) => setTareaAdmin(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && asignarTarea()}
               />
-              <button className="task-btn" onClick={asignarTarea}>Assign</button>
+              <button className="task-btn" onClick={asignarTarea}>
+                Assign {asignadoA.length > 0 ? `(${asignadoA.length})` : ''}
+              </button>
             </div>
           </div>
         )}
