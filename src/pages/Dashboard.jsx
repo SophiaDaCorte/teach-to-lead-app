@@ -9,19 +9,36 @@ function Dashboard() {
   const navigate = useNavigate()
   const doodles = useDoodles()
   const [perfil, setPerfil] = useState(null)
+  const [horas, setHoras] = useState(null)
+  const [anuncios, setAnuncios] = useState([])
 
   useEffect(() => {
-    async function cargarPerfil() {
+    async function cargarDatos() {
       const { data: session } = await supabase.auth.getSession()
       if (session.session) {
         const { data } = await supabase
           .from('perfiles')
           .select('*')
           .eq('id', session.session.user.id)
-        setPerfil(data[0])
+          .single()
+        setPerfil(data)
+
+        const { data: horasData } = await supabase
+          .from('horas')
+          .select('*')
+          .eq('user_id', session.session.user.id)
+          .single()
+        setHoras(horasData)
+
+        const { data: anunciosData } = await supabase
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(2)
+        setAnuncios(anunciosData || [])
       }
     }
-    cargarPerfil()
+    cargarDatos()
   }, [])
 
   async function cerrarSesion() {
@@ -43,6 +60,12 @@ function Dashboard() {
     if (rol === 'volunteer_coordinator') return 'Staff'
     if (rol === 'director_of_programs') return 'Staff'
     return rol
+  }
+
+  function formatFecha(fecha) {
+    return new Date(fecha).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    })
   }
 
   return (
@@ -74,37 +97,33 @@ function Dashboard() {
         </div>
 
         <div className="dash-metrics">
-        {roles.includes('staff_admin') && (
+          {roles.includes('staff_admin') && (
             <div className="metric">
-            <div className="metric-n">24</div>
-            <div className="metric-l">Total volunteers</div>
+              <div className="metric-n">24</div>
+              <div className="metric-l">Total volunteers</div>
             </div>
-        )}
-
-        <div className="metric">
-            <div className="metric-n">47</div>
+          )}
+          <div className="metric">
+            <div className="metric-n">{horas ? horas.total_hrs : 0}</div>
             <div className="metric-l">My hours</div>
-        </div>
-
-        {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
+          </div>
+          {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
             <div className="metric">
-            <div className="metric-n">3</div>
-            <div className="metric-l">Cert. requests</div>
+              <div className="metric-n">3</div>
+              <div className="metric-l">Cert. requests</div>
             </div>
-        )}
-
-        {roles.includes('staff_admin') && (
+          )}
+          {roles.includes('staff_admin') && (
             <div className="metric">
-            <div className="metric-n">2</div>
-            <div className="metric-l">Week off requests</div>
+              <div className="metric-n">2</div>
+              <div className="metric-l">Week off requests</div>
             </div>
-        )}
+          )}
         </div>
 
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
 
-          {/* Staff Admin only */}
           {roles.includes('staff_admin') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -136,7 +155,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Staff Marketing only */}
           {roles.includes('staff_marketing') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -157,7 +175,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Marketing interns + staff_marketing */}
           {(roles.includes('marketing_interns') || roles.includes('staff_marketing')) && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -168,7 +185,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Tutors only */}
           {roles.includes('tutors') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -199,7 +215,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Creation only */}
           {roles.includes('creation') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -220,7 +235,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Week off for non-admin roles */}
           {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation')) && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -231,7 +245,6 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Weekly report */}
           {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -242,59 +255,56 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Volunteer Coordinator */}
           {roles.includes('volunteer_coordinator') && (
             <div className="dash-mod">
-                <div className="dash-mod-top">
+              <div className="dash-mod-top">
                 <span className="dash-mod-emoji">⏱️</span>
-             </div>
-             <div className="dash-mod-title">Tutor hours</div>
-             <div className="dash-mod-desc">View and edit tutors' hours</div>
+              </div>
+              <div className="dash-mod-title">Tutor hours</div>
+              <div className="dash-mod-desc">View and edit tutors' hours</div>
             </div>
           )}
 
           {roles.includes('volunteer_coordinator') && (
-          <div className="dash-mod">
-                <div className="dash-mod-top">
+            <div className="dash-mod">
+              <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🎨</span>
-             </div>
-             <div className="dash-mod-title">Creation hours</div>
-             <div className="dash-mod-desc">View and edit creation hours</div>
-            </div>
-            )}
-
-          {roles.includes('volunteer_coordinator') && (
-          <div className="dash-mod">
-                <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📸</span>
-             </div>
-             <div className="dash-mod-title">Class photos</div>
-             <div className="dash-mod-desc">Review weekly tutor photos</div>
+              </div>
+              <div className="dash-mod-title">Creation hours</div>
+              <div className="dash-mod-desc">View and edit creation hours</div>
             </div>
           )}
 
-          {/* Director of Programs */}
+          {roles.includes('volunteer_coordinator') && (
+            <div className="dash-mod">
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📸</span>
+              </div>
+              <div className="dash-mod-title">Class photos</div>
+              <div className="dash-mod-desc">Review weekly tutor photos</div>
+            </div>
+          )}
+
           {roles.includes('director_of_programs') && (
             <div className="dash-mod">
-                <div className="dash-mod-top">
+              <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📜</span>
-             </div>
-             <div className="dash-mod-title">Certificates</div>
-             <div className="dash-mod-desc">Generate hour certificates</div>
+              </div>
+              <div className="dash-mod-title">Certificates</div>
+              <div className="dash-mod-desc">Generate hour certificates</div>
             </div>
           )}
 
           {roles.includes('director_of_programs') && (
-          <div className="dash-mod">
-                <div className="dash-mod-top">
+            <div className="dash-mod">
+              <div className="dash-mod-top">
                 <span className="dash-mod-emoji">👥</span>
-             </div>
-             <div className="dash-mod-title">Volunteers</div>
-             <div className="dash-mod-desc">View all volunteers</div>
+              </div>
+              <div className="dash-mod-title">Volunteers</div>
+              <div className="dash-mod-desc">View all volunteers</div>
             </div>
           )}
 
-          {/* Shared modules - everyone sees these */}
           <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">⏰</span>
@@ -319,7 +329,7 @@ function Dashboard() {
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
-          <div className="dash-mod" onClick={() => navigate('/Checklist')} style={{cursor: 'pointer'}}>
+          <div className="dash-mod" onClick={() => navigate('/checklist')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">✅</span>
             </div>
@@ -339,15 +349,20 @@ function Dashboard() {
 
         <p className="dash-sl">Latest announcements</p>
         <div className="dash-card">
-          <div className="dash-ann-row">
-            <div className="dash-ann-title">Summer camp recap — great work everyone!</div>
-            <div className="dash-ann-meta">Posted to All volunteers · 2 days ago</div>
-          </div>
-          <div className="dash-ann-row">
-            <div className="dash-ann-title">New checklist items for tutors this week</div>
-            <div className="dash-ann-meta">Posted to Tutors · 5 days ago</div>
-          </div>
-          <button className="dash-lime-btn">+ New announcement</button>
+          {anuncios.length === 0 && (
+            <p style={{fontSize: '13px', color: '#aaa', textAlign: 'center', padding: '1rem 0'}}>No announcements yet.</p>
+          )}
+          {anuncios.map((a) => (
+            <div key={a.id} className="dash-ann-row">
+              <div className="dash-ann-title">{a.titulo}</div>
+              <div className="dash-ann-meta">
+                {new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+          ))}
+          <button className="dash-lime-btn" onClick={() => navigate('/announcements')}>
+            View all announcements
+          </button>
         </div>
 
       </div>
