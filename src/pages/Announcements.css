@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+
+.ann-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.ann-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.ann-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.ann-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.ann-new-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ann-form {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.ann-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #eee;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ann-input:focus { border-color: #2d2a86; }
+
+.ann-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #eee;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.ann-textarea:focus { border-color: #2d2a86; }
+
+.ann-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.ann-grupos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ann-grupo-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #eee;
+  background: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+}
+
+.ann-grupo-btn.selected {
+  border-color: #a9cb5a;
+  background: #f0f7e6;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.ann-publish-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: #2d2a86;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ann-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ann-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.ann-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.ann-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.ann-fecha {
+  font-size: 11px;
+  color: #aaa;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.ann-card-body {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.ann-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ann-tag {
+  font-size: 11px;
+  background: #EEEDFE;
+  color: #3C3489;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.ann-empty {
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.ann-input, .ann-textarea {
+  color-scheme: light;
+}
+
+.ann-input:-webkit-autofill,
+.ann-textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #1a1a1a !important;
+}

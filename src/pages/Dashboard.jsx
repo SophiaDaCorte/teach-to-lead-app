@@ -303,7 +303,7 @@ function Dashboard() {
             <div className="dash-mod-desc">View and request cert</div>
           </div>
 
-          <div className="dash-mod">
+          <div className="dash-mod" onClick={() => navigate('/announcements')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
               <span className="dash-mod-emoji">📢</span>
             </div>

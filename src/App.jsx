@@ -7,6 +7,7 @@ import RutaProtegida from './components/RutaProtegida.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MisHoras from './pages/MisHoras.jsx'
 import Checklist from './pages/Checklist.jsx'
+import Announcements from './pages/Announcements.jsx'
 
 function App() {
   return (
@@ -49,6 +50,12 @@ function App() {
         <Route path="/checklist" element={
             <RutaProtegida>
               <Checklist />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/announcements" element={
+            <RutaProtegida>
+              <Announcements />
             </RutaProtegida>
           }>
         </Route>
