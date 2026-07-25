@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import MisHoras from './pages/MisHoras.jsx'
 import Checklist from './pages/Checklist.jsx'
 import Announcements from './pages/Announcements.jsx'
+import ManageHours from './pages/ManageHours.jsx'
 
 function App() {
   return (
@@ -56,6 +57,12 @@ function App() {
         <Route path="/announcements" element={
             <RutaProtegida>
               <Announcements />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/manage-hours" element={
+            <RutaProtegida>
+              <ManageHours />
             </RutaProtegida>
           }>
         </Route>

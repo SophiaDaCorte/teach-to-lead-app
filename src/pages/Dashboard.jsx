@@ -125,7 +125,7 @@ function Dashboard() {
         <div className="dash-modules">
 
           {roles.includes('staff_admin') && (
-            <div className="dash-mod">
+            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">👑</span>
               </div>
