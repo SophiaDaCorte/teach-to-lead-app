@@ -102,7 +102,7 @@ function Home() {
           I am a volunteer
           </button>
           <button className="btn-teal" onClick={() => navigate('/login')}>
-          Soy estudiante
+          I am a student
           </button>
           </div>
         </div>
