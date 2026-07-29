@@ -1,0 +1,406 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+
+.ap-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.ap-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+  display: block;
+}
+
+.ap-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+}
+
+.ap-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.ap-tab {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #888;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ap-tab.active {
+  background: white;
+  color: #1a1a1a;
+  font-weight: 500;
+  border: 0.5px solid #eee;
+}
+
+.ap-success {
+  background: #f0f7e6;
+  border: 0.5px solid #c0dd97;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.ap-success-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3B6D11;
+  margin: 0 0 4px;
+}
+
+.ap-success-sub {
+  font-size: 12px;
+  color: #639922;
+  margin: 0;
+}
+
+.ap-section {
+  font-size: 11px;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1.25rem 0 10px;
+  font-weight: 600;
+}
+
+.ap-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.ap-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ap-field {
+  margin-bottom: 0;
+}
+
+.ap-label {
+  font-size: 11px;
+  color: #aaa;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.ap-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  color: #1a1a1a;
+}
+
+.ap-input:focus {
+  border-color: #2d2a86;
+}
+
+.ap-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ap-role-btn {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 0.5px solid #eee;
+  background: white;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ap-role-btn.selected {
+  border-color: #a9cb5a;
+  background: #f0f7e6;
+  color: #3B6D11;
+  font-weight: 500;
+}
+
+.ap-pw-box {
+  background: #f9f9f9;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.ap-pw-val {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 1px;
+}
+
+.ap-pw-copy {
+  font-size: 12px;
+  color: #2d2a86;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+}
+
+.ap-info {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+.ap-error {
+  font-size: 13px;
+  color: #E24B4A;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.ap-submit {
+  width: 100%;
+  padding: 13px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ap-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ap-input {
+  color-scheme: light;
+}
+
+.ap-input:-webkit-autofill,
+.ap-input:-webkit-autofill:hover,
+.ap-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #1a1a1a !important;
+  background-color: white !important;
+}
+
+.ap-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+
+.ap-group {
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.ap-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: white;
+}
+
+.ap-group-header:hover { background: #f9f9f9; }
+
+.ap-group-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ap-group-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.ap-group-count {
+  font-size: 11px;
+  background: #f0f0f0;
+  color: #888;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.ap-chevron {
+  font-size: 14px;
+  color: #aaa;
+  transition: transform 0.2s;
+}
+
+.ap-chevron.open { transform: rotate(180deg); }
+
+.ap-group-body {
+  border-top: 0.5px solid #eee;
+}
+
+.ap-vol-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid #f5f5f5;
+  background: white;
+}
+
+.ap-vol-row:last-child { border-bottom: none; }
+.ap-vol-row.editing { background: #f5f5ff; }
+
+.ap-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #EEEDFE;
+  color: #3C3489;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.ap-vol-info { flex: 1; }
+.ap-vol-name { font-size: 13px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.ap-vol-role { font-size: 11px; color: #aaa; margin: 0; }
+
+.ap-vol-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.ap-tag {
+  font-size: 10px;
+  background: #EEEDFE;
+  color: #3C3489;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.ap-vol-btns {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ap-btn-edit, .ap-btn-reset, .ap-btn-deact, .ap-btn-delete, .ap-btn-react {
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.ap-btn-edit { border: 0.5px solid #eee; background: none; color: #555; }
+.ap-btn-reset { border: 0.5px solid #ddd6fe; background: #f5f3ff; color: #6d28d9; }
+.ap-btn-deact { border: 0.5px solid #fde68a; background: #fffbeb; color: #92400e; }
+.ap-btn-delete { border: 0.5px solid #fecaca; background: #fef2f2; color: #b91c1c; }
+.ap-btn-react { border: 0.5px solid #bbf7d0; background: #f0fdf4; color: #15803d; }
+
+.ap-edit-panel {
+  background: #f9f9ff;
+  border: 0.5px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 8px 16px;
+}
+
+.ap-edit-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0 0 12px;
+}
+
+.ap-edit-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ap-save {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ap-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.ap-cancel {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 0.5px solid #eee;
+  background: none;
+  font-size: 12px;
+  color: #aaa;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}

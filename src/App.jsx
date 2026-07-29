@@ -67,7 +67,7 @@ function App() {
             </RutaProtegida>
           }>
         </Route>
-        <Route path="/admin-panel" element={
+        <Route path="/admin" element={
             <RutaProtegida>
               <AdminPanel />
             </RutaProtegida>
