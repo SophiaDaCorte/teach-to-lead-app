@@ -145,13 +145,15 @@ function AdminPanel() {
     setGuardando(false)
   }
 
-  async function marcarInactivo(id) {
-    await supabase.from('perfiles').update({ roles: ['inactivo'] }).eq('id', id)
+  async function marcarInactivo(id, rolesActuales) {
+    await supabase.from('perfiles').update({ roles: ['inactivo'], roles_anteriores: rolesActuales }).eq('id', id)
     await cargarVoluntarios()
   }
 
-  async function reactivar(id, rolesOriginales) {
-    await supabase.from('perfiles').update({ roles: rolesOriginales }).eq('id', id)
+  async function reactivar(id) {
+    const voluntario = voluntarios.find(v => v.id === id)
+    const rolesOriginales = voluntario?.roles_anteriores || ['staff_regular']
+    await supabase.from('perfiles').update({ roles: rolesOriginales, roles_anteriores: null }).eq('id', id)
     await cargarVoluntarios()
   }
 
@@ -262,7 +264,7 @@ function AdminPanel() {
             <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>
               🔑 Reset
             </button>
-            <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id)}>
+            <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>
               Mark inactive
             </button>
           </div>
@@ -391,7 +393,7 @@ function AdminPanel() {
                   <p className="ap-vol-role">{u.titulo}</p>
                 </div>
                 <div className="ap-vol-btns">
-                  <button className="ap-btn-react" onClick={() => reactivar(u.id, ['staff_regular'])}>Reactivate</button>
+                  <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>
                   <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>
                 </div>
               </div>
