@@ -11,6 +11,8 @@ function Dashboard() {
   const [perfil, setPerfil] = useState(null)
   const [horas, setHoras] = useState(null)
   const [anuncios, setAnuncios] = useState([])
+  const [certCount, setCertCount] = useState(0)
+  const [weekOffCount, setWeekOffCount] = useState(0)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -36,6 +38,19 @@ function Dashboard() {
           .order('created_at', { ascending: false })
           .limit(2)
         setAnuncios(anunciosData || [])
+
+        const { count: certs } = await supabase
+          .from('solicitudes_certificado')
+          .select('*', { count: 'exact', head: true })
+          .eq('estado', 'pendiente')
+        setCertCount(certs)
+
+        const { count: weekOffCount } = await supabase
+          .from('solicitudes_week_off')
+          .select('*', { count: 'exact', head: true })
+          .eq('estado', 'pendiente')
+        setWeekOffCount(weekOffCount)
+
       }
     }
     cargarDatos()
@@ -109,13 +124,13 @@ function Dashboard() {
           </div>
           {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
             <div className="metric">
-              <div className="metric-n">3</div>
+              <div className="metric-n">{certCount}</div>
               <div className="metric-l">Cert. requests</div>
             </div>
           )}
           {roles.includes('staff_admin') && (
             <div className="metric">
-              <div className="metric-n">2</div>
+              <div className="metric-n">{weekOffCount}</div>
               <div className="metric-l">Week off requests</div>
             </div>
           )}
