@@ -124,7 +124,7 @@ function Dashboard() {
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
 
-          {roles.includes('staff_admin') && (
+          {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator')) && (
             <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">👑</span>
@@ -252,26 +252,6 @@ function Dashboard() {
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
-            </div>
-          )}
-
-          {roles.includes('volunteer_coordinator') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">⏱️</span>
-              </div>
-              <div className="dash-mod-title">Tutor hours</div>
-              <div className="dash-mod-desc">View and edit tutors' hours</div>
-            </div>
-          )}
-
-          {roles.includes('volunteer_coordinator') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🎨</span>
-              </div>
-              <div className="dash-mod-title">Creation hours</div>
-              <div className="dash-mod-desc">View and edit creation hours</div>
             </div>
           )}
 

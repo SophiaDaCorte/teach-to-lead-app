@@ -33,8 +33,8 @@ function AdminPanel() {
   const navigate = useNavigate()
   const doodles = useDoodles()
   const [tab, setTab] = useState('add')
+  const [perfilActual, setPerfilActual] = useState(null)
 
-  // Add volunteer
   const [nombre, setNombre] = useState('')
   const [titulo, setTitulo] = useState('')
   const [email, setEmail] = useState('')
@@ -45,7 +45,6 @@ function AdminPanel() {
   const [errorMsg, setErrorMsg] = useState('')
   const [copiado, setCopiado] = useState(false)
 
-  // Manage volunteers
   const [voluntarios, setVoluntarios] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [grupoAbierto, setGrupoAbierto] = useState(null)
@@ -56,6 +55,21 @@ function AdminPanel() {
   const [nuevoPassword, setNuevoPassword] = useState('')
   const [copiadoReset, setCopiadoReset] = useState(false)
   const [guardando, setGuardando] = useState(false)
+
+  useEffect(() => {
+    async function cargarPerfil() {
+      const { data: session } = await supabase.auth.getSession()
+      if (session.session) {
+        const { data } = await supabase
+          .from('perfiles')
+          .select('*')
+          .eq('id', session.session.user.id)
+          .single()
+        setPerfilActual(data)
+      }
+    }
+    cargarPerfil()
+  }, [])
 
   useEffect(() => {
     if (tab === 'manage' || tab === 'inactive') {
@@ -95,6 +109,13 @@ function AdminPanel() {
     setCopiadoReset(true)
     setTimeout(() => setCopiadoReset(false), 2000)
   }
+
+  const esAdmin = perfilActual?.roles.includes('staff_admin')
+  const esCoordinator = perfilActual?.roles.includes('volunteer_coordinator')
+
+  const rolesParaMostrar = esAdmin
+    ? ROLES_DISPONIBLES
+    : ROLES_DISPONIBLES.filter(r => r.value === 'tutors' || r.value === 'creation')
 
   async function agregarVoluntario() {
     if (!nombre.trim() || !email.trim() || !titulo.trim() || rolesSeleccionados.length === 0) {
@@ -146,14 +167,20 @@ function AdminPanel() {
   }
 
   async function marcarInactivo(id, rolesActuales) {
-    await supabase.from('perfiles').update({ roles: ['inactivo'], roles_anteriores: rolesActuales }).eq('id', id)
+    await supabase
+      .from('perfiles')
+      .update({ roles: ['inactivo'], roles_anteriores: rolesActuales })
+      .eq('id', id)
     await cargarVoluntarios()
   }
 
   async function reactivar(id) {
     const voluntario = voluntarios.find(v => v.id === id)
     const rolesOriginales = voluntario?.roles_anteriores || ['staff_regular']
-    await supabase.from('perfiles').update({ roles: rolesOriginales, roles_anteriores: null }).eq('id', id)
+    await supabase
+      .from('perfiles')
+      .update({ roles: rolesOriginales, roles_anteriores: null })
+      .eq('id', id)
     await cargarVoluntarios()
   }
 
@@ -161,7 +188,6 @@ function AdminPanel() {
     await supabase.from('horas').delete().eq('user_id', id)
     await supabase.from('checklists').delete().eq('asignado_a', id)
     await supabase.from('perfiles').delete().eq('id', id)
-    await supabase.functions.invoke('reset-password', { body: { userId: id, delete: true } })
     await cargarVoluntarios()
   }
 
@@ -189,7 +215,13 @@ function AdminPanel() {
   )
 
   const inactivos = voluntarios.filter(v => v.roles.includes('inactivo'))
-  const grupos = agrupar(activos)
+  const todosGrupos = agrupar(activos)
+
+  const gruposVisibles = esAdmin
+    ? todosGrupos
+    : esCoordinator
+      ? { Tutors: todosGrupos.Tutors, Creation: todosGrupos.Creation }
+      : {}
 
   function renderVoluntario(u) {
     return (
@@ -261,9 +293,11 @@ function AdminPanel() {
             <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo); setResetUser(null) }}>
               ✏️ Edit
             </button>
-            <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>
-              🔑 Reset
-            </button>
+            {esAdmin && (
+              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>
+                🔑 Reset
+              </button>
+            )}
             <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>
               Mark inactive
             </button>
@@ -312,12 +346,13 @@ function AdminPanel() {
                 </div>
               </div>
             </div>
+
             <p className="ap-section">Role & access</p>
             <div className="ap-card">
               <div className="ap-field">
                 <label className="ap-label">Role (can select multiple)</label>
                 <div className="ap-roles">
-                  {ROLES_DISPONIBLES.map(r => (
+                  {rolesParaMostrar.map(r => (
                     <button key={r.value} className={`ap-role-btn ${rolesSeleccionados.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRol(r.value)}>
                       {r.label}
                     </button>
@@ -329,15 +364,21 @@ function AdminPanel() {
                 <input className="ap-input" type="email" placeholder="anjola@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
-            <p className="ap-section">Login credentials</p>
-            <div className="ap-card">
-              <label className="ap-label">Password (auto-generated)</label>
-              <div className="ap-pw-box">
-                <span className="ap-pw-val">{password}</span>
-                <button className="ap-pw-copy" onClick={copiarPassword}>{copiado ? '✓ Copied!' : '📋 Copy'}</button>
-              </div>
-              <p className="ap-info">Share this password with the volunteer so they can log in.</p>
-            </div>
+
+            {esAdmin && (
+              <>
+                <p className="ap-section">Login credentials</p>
+                <div className="ap-card">
+                  <label className="ap-label">Password (auto-generated)</label>
+                  <div className="ap-pw-box">
+                    <span className="ap-pw-val">{password}</span>
+                    <button className="ap-pw-copy" onClick={copiarPassword}>{copiado ? '✓ Copied!' : '📋 Copy'}</button>
+                  </div>
+                  <p className="ap-info">Share this password with the volunteer so they can log in.</p>
+                </div>
+              </>
+            )}
+
             {errorMsg && <p className="ap-error">{errorMsg}</p>}
             <button className="ap-submit" onClick={agregarVoluntario} disabled={cargando}>
               {cargando ? 'Adding...' : 'Add volunteer'}
@@ -354,7 +395,7 @@ function AdminPanel() {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
-            {Object.entries(grupos).map(([nombre, personas]) => {
+            {Object.entries(gruposVisibles).map(([nombre, personas]) => {
               if (personas.length === 0) return null
               const abierto = grupoAbierto === nombre
               return (
@@ -394,7 +435,9 @@ function AdminPanel() {
                 </div>
                 <div className="ap-vol-btns">
                   <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>
-                  <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>
+                  {esAdmin && (
+                    <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>
+                  )}
                 </div>
               </div>
             ))}
