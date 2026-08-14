@@ -43,14 +43,13 @@ function Dashboard() {
           .from('solicitudes_certificado')
           .select('*', { count: 'exact', head: true })
           .eq('estado', 'pendiente')
-        setCertCount(certs)
+        setCertCount(certs || 0)
 
-        const { count: weekOffCount } = await supabase
+        const { count: weekOffs } = await supabase
           .from('solicitudes_week_off')
           .select('*', { count: 'exact', head: true })
           .eq('estado', 'pendiente')
-        setWeekOffCount(weekOffCount)
-
+        setWeekOffCount(weekOffs || 0)
       }
     }
     cargarDatos()
@@ -75,12 +74,6 @@ function Dashboard() {
     if (rol === 'volunteer_coordinator') return 'Staff'
     if (rol === 'director_of_programs') return 'Staff'
     return rol
-  }
-
-  function formatFecha(fecha) {
-    return new Date(fecha).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
-    })
   }
 
   return (
@@ -160,10 +153,10 @@ function Dashboard() {
           )}
 
           {roles.includes('staff_admin') && (
-            <div className="dash-mod">
+            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🏖️</span>
-                <span className="dash-badge badge-warn">2 new</span>
+                {weekOffCount > 0 && <span className="dash-badge badge-warn">{weekOffCount} new</span>}
               </div>
               <div className="dash-mod-title">Week off</div>
               <div className="dash-mod-desc">Review all requests</div>
@@ -250,8 +243,8 @@ function Dashboard() {
             </div>
           )}
 
-          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation')) && (
-            <div className="dash-mod">
+          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation') || roles.includes('tutors') || roles.includes('volunteer_coordinator') || roles.includes('staff_marketing') || roles.includes('director_of_programs')) && (
+            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🏖️</span>
               </div>
@@ -267,16 +260,6 @@ function Dashboard() {
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
-            </div>
-          )}
-
-          {roles.includes('volunteer_coordinator') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📸</span>
-              </div>
-              <div className="dash-mod-title">Class photos</div>
-              <div className="dash-mod-desc">Review weekly tutor photos</div>
             </div>
           )}
 
@@ -339,6 +322,16 @@ function Dashboard() {
             <div className="dash-mod-title">Files</div>
             <div className="dash-mod-desc">Upload and share files</div>
           </div>
+
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">⏱️</span>
+              </div>
+              <div className="dash-mod-title">Manage hours</div>
+              <div className="dash-mod-desc">Edit volunteer hours</div>
+            </div>
+          )}
 
         </div>
 

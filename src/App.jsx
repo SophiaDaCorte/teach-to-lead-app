@@ -10,6 +10,7 @@ import Checklist from './pages/Checklist.jsx'
 import Announcements from './pages/Announcements.jsx'
 import ManageHours from './pages/ManageHours.jsx'
 import AdminPanel from './pages/AdminPanel.jsx'
+import WeekOff from './pages/WeekOff.jsx'
 
 function App() {
   return (
@@ -70,6 +71,12 @@ function App() {
         <Route path="/admin" element={
             <RutaProtegida>
               <AdminPanel />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/week-off" element={
+            <RutaProtegida>
+              <WeekOff />
             </RutaProtegida>
           }>
         </Route>
