@@ -142,13 +142,14 @@ function Dashboard() {
             </div>
           )}
 
-          {roles.includes('staff_admin') && (
-            <div className="dash-mod">
+          {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
+            <div className="dash-mod" onClick={() => navigate('/certificates')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📜</span>
+                {certCount > 0 && <span className="dash-badge badge-warn">{certCount} new</span>}
               </div>
               <div className="dash-mod-title">Certificates</div>
-              <div className="dash-mod-desc">Review and generate</div>
+              <div className="dash-mod-desc">Review and approve</div>
             </div>
           )}
 
@@ -260,16 +261,6 @@ function Dashboard() {
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
-            </div>
-          )}
-
-          {roles.includes('director_of_programs') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📜</span>
-              </div>
-              <div className="dash-mod-title">Certificates</div>
-              <div className="dash-mod-desc">Generate hour certificates</div>
             </div>
           )}
 
