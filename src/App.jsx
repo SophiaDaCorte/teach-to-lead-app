@@ -12,6 +12,8 @@ import ManageHours from './pages/ManageHours.jsx'
 import AdminPanel from './pages/AdminPanel.jsx'
 import WeekOff from './pages/WeekOff.jsx'
 import Certificates from './pages/Certificates.jsx'
+import WeeklyReport from './pages/WeeklyReport.jsx'
+import AdminReports from './pages/AdminReports.jsx'
 
 function App() {
   return (
@@ -84,6 +86,18 @@ function App() {
         <Route path="/certificates" element={
             <RutaProtegida>
               <Certificates />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/weekly-report" element={
+            <RutaProtegida>
+              <WeeklyReport />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/admin-reports" element={
+            <RutaProtegida>
+              <AdminReports />
             </RutaProtegida>
           }>
         </Route>

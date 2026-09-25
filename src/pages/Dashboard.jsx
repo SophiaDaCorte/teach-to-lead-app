@@ -164,6 +164,16 @@ function Dashboard() {
             </div>
           )}
 
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod" onClick={() => navigate('/admin-reports')} style={{cursor: 'pointer'}}>
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📋</span>
+              </div>
+              <div className="dash-mod-title">Staff Reports</div>
+              <div className="dash-mod-desc">Review and approve</div>
+            </div>
+          )}
+
           {roles.includes('staff_marketing') && (
             <div className="dash-mod">
               <div className="dash-mod-top">
@@ -255,7 +265,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
-            <div className="dash-mod">
+            <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📝</span>
               </div>
@@ -263,6 +273,7 @@ function Dashboard() {
               <div className="dash-mod-desc">Submit your weekly report</div>
             </div>
           )}
+
 
           {roles.includes('director_of_programs') && (
             <div className="dash-mod">

@@ -33,6 +33,11 @@ function Certificates() {
     await cargarSolicitudes()
   }
 
+  async function eliminarCertificado(id) {
+    await supabase.from('solicitudes_certificado').delete().eq('id', id)
+    await cargarSolicitudes()
+  }
+
   function formatFecha(fecha) {
     return new Date(fecha).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
@@ -91,6 +96,9 @@ function Certificates() {
                     <i className="ti ti-upload" aria-hidden="true"></i> Upload cert
                   </button>
                 )}
+                <button className="cert-delete" onClick={() => eliminarCertificado(s.id)}>
+                  <i className="ti ti-trash" aria-hidden="true"></i>
+                </button>
               </div>
             </div>
           ))}
