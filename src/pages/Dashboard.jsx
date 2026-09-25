@@ -13,6 +13,8 @@ function Dashboard() {
   const [anuncios, setAnuncios] = useState([])
   const [certCount, setCertCount] = useState(0)
   const [weekOffCount, setWeekOffCount] = useState(0)
+  const [voluntariosCount, setVoluntariosCount] = useState(0)
+  const [reportePendienteCount, setReportePendienteCount] = useState(false)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -50,6 +52,30 @@ function Dashboard() {
           .select('*', { count: 'exact', head: true })
           .eq('estado', 'pendiente')
         setWeekOffCount(weekOffs || 0)
+
+        const { count } = await supabase
+          .from('perfiles')
+          .select('*', { count: 'exact', head: true })
+          .not( 'roles', 'cs', '{"estudiante"}')
+          .not( 'roles', 'cs', '{"inactivo"}')
+        setVoluntariosCount(count || 0)
+
+        const hoy = new Date()
+        const inicioSemana = new Date(hoy)
+        const dia = hoy.getDay()
+        const diff = hoy.getDate() - dia + (dia === 0 ? -6 : 1)
+        inicioSemana.setDate(diff)
+        inicioSemana.setHours(0, 0, 0, 0)
+        const isoSemana = inicioSemana.toISOString().split('T')[0]
+
+        const { data: reporte } = await supabase
+          .from('weekly_reports')
+          .select('id')
+          .eq('user_id', session.session.user.id)
+          .eq('semana_inicio', isoSemana)
+          .single()
+        
+        setReportePendienteCount(!reporte)
       }
     }
     cargarDatos()
@@ -107,7 +133,7 @@ function Dashboard() {
         <div className="dash-metrics">
           {roles.includes('staff_admin') && (
             <div className="metric">
-              <div className="metric-n">24</div>
+              <div className="metric-n">{voluntariosCount}</div>
               <div className="metric-l">Total volunteers</div>
             </div>
           )}
@@ -268,6 +294,7 @@ function Dashboard() {
             <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📝</span>
+                {reportePendienteCount && <span className="dash-badge badge-warn">Pending</span>}
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
