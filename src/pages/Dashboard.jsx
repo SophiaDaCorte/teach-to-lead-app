@@ -14,7 +14,7 @@ function Dashboard() {
   const [certCount, setCertCount] = useState(0)
   const [weekOffCount, setWeekOffCount] = useState(0)
   const [voluntariosCount, setVoluntariosCount] = useState(0)
-  const [reportePendienteCount, setReportePendienteCount] = useState(false)
+  const [reportePendiente, setReportePendiente] = useState(false)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -53,12 +53,12 @@ function Dashboard() {
           .eq('estado', 'pendiente')
         setWeekOffCount(weekOffs || 0)
 
-        const { count } = await supabase
+        const { count: vols } = await supabase
           .from('perfiles')
           .select('*', { count: 'exact', head: true })
-          .not( 'roles', 'cs', '{"estudiante"}')
-          .not( 'roles', 'cs', '{"inactivo"}')
-        setVoluntariosCount(count || 0)
+          .not('roles', 'cs', '{"estudiante"}')
+          .not('roles', 'cs', '{"inactivo"}')
+        setVoluntariosCount(vols || 0)
 
         const hoy = new Date()
         const inicioSemana = new Date(hoy)
@@ -73,9 +73,8 @@ function Dashboard() {
           .select('id')
           .eq('user_id', session.session.user.id)
           .eq('semana_inicio', isoSemana)
-          .single()
-        
-        setReportePendienteCount(!reporte)
+          .maybeSingle()
+        setReportePendiente(!reporte)
       }
     }
     cargarDatos()
@@ -99,6 +98,7 @@ function Dashboard() {
     if (rol === 'creation') return 'Creation Team'
     if (rol === 'volunteer_coordinator') return 'Staff'
     if (rol === 'director_of_programs') return 'Staff'
+    if (rol === 'director_of_schools') return 'Staff'
     return rol
   }
 
@@ -158,13 +158,23 @@ function Dashboard() {
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
 
-          {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator')) && (
+          {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('director_of_schools')) && (
             <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">👑</span>
               </div>
               <div className="dash-mod-title">Admin panel</div>
               <div className="dash-mod-desc">Manage all users and roles</div>
+            </div>
+          )}
+
+          {roles.includes('director_of_schools') && (
+            <div className="dash-mod" onClick={() => navigate('/class-observations')} style={{cursor: 'pointer'}}>
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📋</span>
+              </div>
+              <div className="dash-mod-title">Class observations</div>
+              <div className="dash-mod-desc">Report and view class visits</div>
             </div>
           )}
 
@@ -195,7 +205,7 @@ function Dashboard() {
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📋</span>
               </div>
-              <div className="dash-mod-title">Staff Reports</div>
+              <div className="dash-mod-title">General reports</div>
               <div className="dash-mod-desc">Review and approve</div>
             </div>
           )}
@@ -280,7 +290,7 @@ function Dashboard() {
             </div>
           )}
 
-          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation') || roles.includes('tutors') || roles.includes('volunteer_coordinator') || roles.includes('staff_marketing') || roles.includes('director_of_programs')) && (
+          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation') || roles.includes('tutors') || roles.includes('volunteer_coordinator') || roles.includes('staff_marketing') || roles.includes('director_of_programs') || roles.includes('director_of_schools')) && (
             <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🏖️</span>
@@ -290,17 +300,16 @@ function Dashboard() {
             </div>
           )}
 
-          {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
+          {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing') || roles.includes('director_of_schools') || roles.includes('volunteer_coordinator') || roles.includes('director_of_programs')) && (
             <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📝</span>
-                {reportePendienteCount && <span className="dash-badge badge-warn">Pending</span>}
+                {reportePendiente && <span className="dash-badge badge-new">Pending</span>}
               </div>
               <div className="dash-mod-title">Weekly report</div>
               <div className="dash-mod-desc">Submit your weekly report</div>
             </div>
           )}
-
 
           {roles.includes('director_of_programs') && (
             <div className="dash-mod">

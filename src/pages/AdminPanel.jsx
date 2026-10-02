@@ -12,6 +12,7 @@ const ROLES_DISPONIBLES = [
   { value: 'creation', label: 'Creation' },
   { value: 'volunteer_coordinator', label: 'Volunteer Coordinator' },
   { value: 'director_of_programs', label: 'Director of Programs' },
+  { value: 'director_of_schools', label: 'Director of Schools' },
   { value: 'staff_marketing', label: 'Marketing Director' },
   { value: 'staff_admin', label: 'Staff Admin' },
 ]
@@ -35,7 +36,6 @@ function AdminPanel() {
   const [tab, setTab] = useState('add')
   const [perfilActual, setPerfilActual] = useState(null)
 
-  // Add volunteer
   const [nombre, setNombre] = useState('')
   const [titulo, setTitulo] = useState('')
   const [email, setEmail] = useState('')
@@ -46,7 +46,6 @@ function AdminPanel() {
   const [errorMsg, setErrorMsg] = useState('')
   const [copiado, setCopiado] = useState(false)
 
-  // Manage volunteers
   const [voluntarios, setVoluntarios] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [grupoAbierto, setGrupoAbierto] = useState(null)
@@ -58,7 +57,6 @@ function AdminPanel() {
   const [copiadoReset, setCopiadoReset] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
-  // Manage students
   const [comunidades, setComunidades] = useState([])
   const [estudiantes, setEstudiantes] = useState([])
   const [tutores, setTutores] = useState([])
@@ -258,10 +256,13 @@ function AdminPanel() {
 
   const esAdmin = perfilActual?.roles.includes('staff_admin')
   const esCoordinator = perfilActual?.roles.includes('volunteer_coordinator')
+  const esDirectorSchools = perfilActual?.roles.includes('director_of_schools')
 
   const rolesParaMostrar = esAdmin
     ? ROLES_DISPONIBLES
-    : ROLES_DISPONIBLES.filter(r => r.value === 'tutors' || r.value === 'creation')
+    : esDirectorSchools
+      ? ROLES_DISPONIBLES.filter(r => r.value === 'tutors')
+      : ROLES_DISPONIBLES.filter(r => r.value === 'tutors' || r.value === 'creation')
 
   async function agregarVoluntario() {
     if (!nombre.trim() || !email.trim() || !titulo.trim() || rolesSeleccionados.length === 0) {
@@ -278,6 +279,7 @@ function AdminPanel() {
       setErrorMsg(error?.message || data?.error || 'Something went wrong.')
     } else {
       setExito(nombre)
+      setTimeout(() => setExito(null), 4000)
       setNombre('')
       setTitulo('')
       setEmail('')
@@ -340,7 +342,8 @@ function AdminPanel() {
       Staff: lista.filter(u =>
         u.roles.includes('staff_regular') ||
         u.roles.includes('volunteer_coordinator') ||
-        u.roles.includes('director_of_programs')
+        u.roles.includes('director_of_programs') ||
+        u.roles.includes('director_of_schools')
       ),
       Marketing: lista.filter(u =>
         u.roles.includes('staff_marketing') ||
@@ -364,7 +367,9 @@ function AdminPanel() {
     ? todosGrupos
     : esCoordinator
       ? { Tutors: todosGrupos.Tutors, Creation: todosGrupos.Creation }
-      : {}
+      : esDirectorSchools
+        ? { Tutors: todosGrupos.Tutors }
+        : {}
 
   function renderVoluntario(u) {
     return (
@@ -720,13 +725,15 @@ function AdminPanel() {
                       <span style={{fontSize:'11px', color:'#aaa'}}>
                         {tutores.find(t => t.id === c.tutor_id)?.nombre || 'Sin tutor'}
                       </span>
-                      <button
-                        className="ap-btn-delete"
-                        style={{fontSize:'12px', padding:'4px 8px'}}
-                        onClick={(e) => { e.stopPropagation(); eliminarComunidad(c.id) }}
-                      >
-                        <i className="ti ti-trash" aria-hidden="true"></i>
-                      </button>
+                      {esAdmin && (
+                        <button
+                          className="ap-btn-delete"
+                          style={{fontSize:'12px', padding:'4px 8px'}}
+                          onClick={(e) => { e.stopPropagation(); eliminarComunidad(c.id) }}
+                        >
+                          <i className="ti ti-trash" aria-hidden="true"></i>
+                        </button>
+                      )}
                       <i className={`ti ti-chevron-down ap-chevron ${abierta ? 'open' : ''}`} aria-hidden="true"></i>
                     </div>
                   </div>

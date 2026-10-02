@@ -14,6 +14,7 @@ import Certificates from './pages/Certificates.jsx'
 import WeeklyReport from './pages/WeeklyReport.jsx'
 import AdminReports from './pages/AdminReports.jsx'
 import EstudianteDashboard from './pages/EstudianteDashboard.jsx'
+import ClassObservations from './pages/ClassObservations.jsx'
 
 function App() {
   return (
@@ -96,6 +97,12 @@ function App() {
         <Route path="/estudiantes" element={
             <RutaProtegida>
               <EstudianteDashboard />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/class-observations" element={
+            <RutaProtegida>
+              <ClassObservations />
             </RutaProtegida>
           }>
         </Route>
