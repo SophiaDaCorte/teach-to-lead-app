@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { nombre, titulo, roles, email, password } = await req.json()
+    const { nombre, titulo, roles, email, password, comunidad, nivel } = await req.json()
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -32,15 +32,19 @@ serve(async (req) => {
     await supabaseAdmin.from('perfiles').insert({
       id: userId,
       nombre,
-      titulo,
-      roles
+      titulo: titulo || 'Estudiante',
+      roles: roles || ['estudiante'],
+      comunidad: comunidad || null,
+      nivel: nivel || null
     })
 
-    await supabaseAdmin.from('horas').insert({
-      user_id: userId,
-      content_hrs: 0,
-      meeting_hrs: 0
-    })
+    if (!roles?.includes('estudiante')) {
+      await supabaseAdmin.from('horas').insert({
+        user_id: userId,
+        content_hrs: 0,
+        meeting_hrs: 0
+      })
+    }
 
     return new Response(
       JSON.stringify({ success: true, userId }),

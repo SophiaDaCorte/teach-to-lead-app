@@ -35,6 +35,7 @@ function AdminPanel() {
   const [tab, setTab] = useState('add')
   const [perfilActual, setPerfilActual] = useState(null)
 
+  // Add volunteer
   const [nombre, setNombre] = useState('')
   const [titulo, setTitulo] = useState('')
   const [email, setEmail] = useState('')
@@ -45,6 +46,7 @@ function AdminPanel() {
   const [errorMsg, setErrorMsg] = useState('')
   const [copiado, setCopiado] = useState(false)
 
+  // Manage volunteers
   const [voluntarios, setVoluntarios] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [grupoAbierto, setGrupoAbierto] = useState(null)
@@ -55,6 +57,28 @@ function AdminPanel() {
   const [nuevoPassword, setNuevoPassword] = useState('')
   const [copiadoReset, setCopiadoReset] = useState(false)
   const [guardando, setGuardando] = useState(false)
+
+  // Manage students
+  const [comunidades, setComunidades] = useState([])
+  const [estudiantes, setEstudiantes] = useState([])
+  const [tutores, setTutores] = useState([])
+  const [comunidadAbierta, setComunidadAbierta] = useState(null)
+  const [formulario, setFormulario] = useState(null)
+  const [nuevaComunidad, setNuevaComunidad] = useState('')
+  const [nuevoNivel, setNuevoNivel] = useState('')
+  const [tutorSeleccionado, setTutorSeleccionado] = useState('')
+  const [estudianteNombre, setEstudianteNombre] = useState('')
+  const [estudianteEmail, setEstudianteEmail] = useState('')
+  const [estudianteComunidad, setEstudianteComunidad] = useState('')
+  const [estudiantePassword, setEstudiantePassword] = useState(generarPassword())
+  const [copiadoEst, setCopiadoEst] = useState(false)
+  const [exitoEst, setExitoEst] = useState(null)
+  const [errorEst, setErrorEst] = useState('')
+  const [moviendo, setMoviendo] = useState(null)
+  const [comunidadDestino, setComunidadDestino] = useState('')
+  const [estudianteBusqueda, setEstudianteBusqueda] = useState('')
+  const [estudianteAsignar, setEstudianteAsignar] = useState(null)
+  const [comunidadAsignar, setComunidadAsignar] = useState('')
 
   useEffect(() => {
     async function cargarPerfil() {
@@ -72,14 +96,130 @@ function AdminPanel() {
   }, [])
 
   useEffect(() => {
-    if (tab === 'manage' || tab === 'inactive') {
-      cargarVoluntarios()
-    }
+    if (tab === 'manage' || tab === 'inactive') cargarVoluntarios()
+    if (tab === 'students') cargarDatosEstudiantes()
   }, [tab])
 
   async function cargarVoluntarios() {
     const { data } = await supabase.from('perfiles').select('*')
     setVoluntarios(data || [])
+  }
+
+  async function cargarDatosEstudiantes() {
+    const { data: coms } = await supabase
+      .from('comunidades')
+      .select('*')
+      .order('nombre')
+    setComunidades(coms || [])
+
+    const { data: ests } = await supabase
+      .from('perfiles')
+      .select('*')
+      .contains('roles', ['estudiante'])
+    setEstudiantes(ests || [])
+
+    const { data: tuts } = await supabase
+      .from('perfiles')
+      .select('*')
+      .contains('roles', ['tutors'])
+    setTutores(tuts || [])
+  }
+
+  async function crearComunidad() {
+    if (!nuevaComunidad.trim() || !nuevoNivel.trim()) return
+    await supabase.from('comunidades').insert({
+      nombre: nuevaComunidad,
+      nivel: nuevoNivel,
+      tutor_id: tutorSeleccionado || null
+    })
+    setNuevaComunidad('')
+    setNuevoNivel('')
+    setTutorSeleccionado('')
+    setFormulario(null)
+    await cargarDatosEstudiantes()
+  }
+
+  async function eliminarComunidad(id) {
+    await supabase.from('comunidades').delete().eq('id', id)
+    await cargarDatosEstudiantes()
+  }
+
+  async function agregarEstudiante() {
+    if (!estudianteNombre.trim() || !estudianteEmail.trim() || !estudianteComunidad) {
+      setErrorEst('Please fill in all fields.')
+      return
+    }
+    setCargando(true)
+    setErrorEst('')
+
+    const comunidadObj = comunidades.find(c => c.id === estudianteComunidad)
+
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: {
+        nombre: estudianteNombre,
+        titulo: 'Estudiante',
+        roles: ['estudiante'],
+        email: estudianteEmail,
+        password: estudiantePassword,
+        comunidad: comunidadObj?.nombre || null,
+        nivel: comunidadObj?.nivel || null
+      }
+    })
+
+    setCargando(false)
+
+    if (error || data?.error) {
+      setErrorEst(error?.message || data?.error || 'Something went wrong.')
+    } else {
+      setExitoEst(estudianteNombre)
+      setTimeout(() => setExitoEst(null), 4000)
+      setEstudianteNombre('')
+      setEstudianteEmail('')
+      setEstudianteComunidad('')
+      setEstudiantePassword(generarPassword())
+      setFormulario(null)
+      await cargarDatosEstudiantes()
+    }
+  }
+
+  async function asignarEstudianteExistente() {
+    if (!estudianteAsignar || !comunidadAsignar) return
+    const comunidadObj = comunidades.find(c => c.id === comunidadAsignar)
+    await supabase
+      .from('perfiles')
+      .update({
+        comunidad: comunidadObj?.nombre || null,
+        nivel: comunidadObj?.nivel || null
+      })
+      .eq('id', estudianteAsignar.id)
+    setEstudianteAsignar(null)
+    setEstudianteBusqueda('')
+    setComunidadAsignar('')
+    setFormulario(null)
+    await cargarDatosEstudiantes()
+  }
+
+  async function marcarEstudianteInactivo(id) {
+    await supabase
+      .from('perfiles')
+      .update({ roles: ['inactivo'], roles_anteriores: ['estudiante'] })
+      .eq('id', id)
+    await cargarDatosEstudiantes()
+  }
+
+  async function moverEstudiante(estudiante) {
+    if (!comunidadDestino) return
+    const comunidadObj = comunidades.find(c => c.id === comunidadDestino)
+    await supabase
+      .from('perfiles')
+      .update({
+        comunidad: comunidadObj?.nombre || null,
+        nivel: comunidadObj?.nivel || null
+      })
+      .eq('id', estudiante.id)
+    setMoviendo(null)
+    setComunidadDestino('')
+    await cargarDatosEstudiantes()
   }
 
   function toggleRol(value) {
@@ -110,6 +250,12 @@ function AdminPanel() {
     setTimeout(() => setCopiadoReset(false), 2000)
   }
 
+  function copiarEstPassword() {
+    navigator.clipboard.writeText(estudiantePassword)
+    setCopiadoEst(true)
+    setTimeout(() => setCopiadoEst(false), 2000)
+  }
+
   const esAdmin = perfilActual?.roles.includes('staff_admin')
   const esCoordinator = perfilActual?.roles.includes('volunteer_coordinator')
 
@@ -124,13 +270,10 @@ function AdminPanel() {
     }
     setCargando(true)
     setErrorMsg('')
-
     const { data, error } = await supabase.functions.invoke('create-user', {
       body: { nombre, titulo, roles: rolesSeleccionados, email, password }
     })
-
     setCargando(false)
-
     if (error || data?.error) {
       setErrorMsg(error?.message || data?.error || 'Something went wrong.')
     } else {
@@ -318,9 +461,9 @@ function AdminPanel() {
         <h1 className="ap-title">Admin panel</h1>
 
         <div className="ap-tabs">
-          {['add', 'manage', 'inactive'].map(t => (
+          {['add', 'manage', 'students', 'inactive'].map(t => (
             <button key={t} onClick={() => setTab(t)} className={`ap-tab ${tab === t ? 'active' : ''}`}>
-              {t === 'add' ? 'Add volunteer' : t === 'manage' ? 'Manage volunteers' : 'Inactive'}
+              {t === 'add' ? 'Add volunteer' : t === 'manage' ? 'Manage volunteers' : t === 'students' ? 'Manage students' : 'Inactive'}
             </button>
           ))}
         </div>
@@ -346,7 +489,6 @@ function AdminPanel() {
                 </div>
               </div>
             </div>
-
             <p className="ap-section">Role & access</p>
             <div className="ap-card">
               <div className="ap-field">
@@ -364,7 +506,6 @@ function AdminPanel() {
                 <input className="ap-input" type="email" placeholder="anjola@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
-
             {esAdmin && (
               <>
                 <p className="ap-section">Login credentials</p>
@@ -378,7 +519,6 @@ function AdminPanel() {
                 </div>
               </>
             )}
-
             {errorMsg && <p className="ap-error">{errorMsg}</p>}
             <button className="ap-submit" onClick={agregarVoluntario} disabled={cargando}>
               {cargando ? 'Adding...' : 'Add volunteer'}
@@ -419,12 +559,263 @@ function AdminPanel() {
           </div>
         )}
 
+        {tab === 'students' && (
+          <div>
+            {exitoEst && (
+              <div className="ap-success">
+                <p className="ap-success-title">✓ {exitoEst} added successfully</p>
+                <p className="ap-success-sub">Share their login details so they can access the platform.</p>
+              </div>
+            )}
+
+            <div className="ap-student-btns" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+              <button
+                className={`ap-student-btn ${formulario === 'community' ? 'active' : ''}`}
+                onClick={() => setFormulario(formulario === 'community' ? null : 'community')}
+              >
+                ＋ Add community
+              </button>
+              <button
+                className={`ap-student-btn ${formulario === 'student' ? 'active' : ''}`}
+                onClick={() => setFormulario(formulario === 'student' ? null : 'student')}
+              >
+                ＋ Add student
+              </button>
+              <button
+                className={`ap-student-btn ${formulario === 'assign' ? 'active' : ''}`}
+                onClick={() => setFormulario(formulario === 'assign' ? null : 'assign')}
+              >
+                👤 Assign existing
+              </button>
+            </div>
+
+            {formulario === 'community' && (
+              <div className="ap-card" style={{marginBottom: '1rem'}}>
+                <p className="ap-edit-title">New community</p>
+                <div className="ap-row2">
+                  <div className="ap-field">
+                    <label className="ap-label">Community name</label>
+                    <input className="ap-input" type="text" placeholder="e.g. Mariposas" value={nuevaComunidad} onChange={(e) => setNuevaComunidad(e.target.value)} />
+                  </div>
+                  <div className="ap-field">
+                    <label className="ap-label">Level</label>
+                    <input className="ap-input" type="text" placeholder="e.g. A2" value={nuevoNivel} onChange={(e) => setNuevoNivel(e.target.value)} />
+                  </div>
+                </div>
+                <div className="ap-field">
+                  <label className="ap-label">Assign tutor</label>
+                  <select className="ap-input" value={tutorSeleccionado} onChange={(e) => setTutorSeleccionado(e.target.value)}>
+                    <option value="">Select a tutor...</option>
+                    {tutores.map(t => (
+                      <option key={t.id} value={t.id}>{t.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ap-edit-btns">
+                  <button className="ap-save" onClick={crearComunidad}>Create community</button>
+                  <button className="ap-cancel" onClick={() => setFormulario(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {formulario === 'student' && (
+              <div className="ap-card" style={{marginBottom: '1rem'}}>
+                <p className="ap-edit-title">New student</p>
+                <div className="ap-row2">
+                  <div className="ap-field">
+                    <label className="ap-label">Full name</label>
+                    <input className="ap-input" type="text" placeholder="Luisa M." value={estudianteNombre} onChange={(e) => setEstudianteNombre(e.target.value)} />
+                  </div>
+                  <div className="ap-field">
+                    <label className="ap-label">Email</label>
+                    <input className="ap-input" type="email" placeholder="luisa@email.com" value={estudianteEmail} onChange={(e) => setEstudianteEmail(e.target.value)} />
+                  </div>
+                </div>
+                <div className="ap-field">
+                  <label className="ap-label">Community</label>
+                  <select className="ap-input" value={estudianteComunidad} onChange={(e) => setEstudianteComunidad(e.target.value)}>
+                    <option value="">Select community...</option>
+                    {comunidades.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre} {c.nivel}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ap-field">
+                  <label className="ap-label">Password (auto-generated)</label>
+                  <div className="ap-pw-box">
+                    <span className="ap-pw-val">{estudiantePassword}</span>
+                    <button className="ap-pw-copy" onClick={copiarEstPassword}>{copiadoEst ? '✓ Copied!' : '📋 Copy'}</button>
+                  </div>
+                </div>
+                {errorEst && <p className="ap-error">{errorEst}</p>}
+                <div className="ap-edit-btns">
+                  <button className="ap-save" onClick={agregarEstudiante} disabled={cargando}>
+                    {cargando ? 'Adding...' : 'Add student'}
+                  </button>
+                  <button className="ap-cancel" onClick={() => setFormulario(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {formulario === 'assign' && (
+              <div className="ap-card" style={{marginBottom: '1rem'}}>
+                <p className="ap-edit-title">Assign existing student</p>
+                <div className="ap-field">
+                  <label className="ap-label">Search student</label>
+                  <input
+                    className="ap-input"
+                    type="text"
+                    placeholder="Type a name..."
+                    value={estudianteBusqueda}
+                    onChange={(e) => setEstudianteBusqueda(e.target.value)}
+                  />
+                  {estudianteBusqueda.length > 1 && (
+                    <div style={{border:'0.5px solid #eee', borderRadius:'8px', marginTop:'4px', overflow:'hidden'}}>
+                      {estudiantes
+                        .filter(e => e.nombre.toLowerCase().includes(estudianteBusqueda.toLowerCase()))
+                        .slice(0, 5)
+                        .map(e => (
+                          <div
+                            key={e.id}
+                            onClick={() => { setEstudianteAsignar(e); setEstudianteBusqueda(e.nombre) }}
+                            style={{padding:'8px 12px', cursor:'pointer', fontSize:'13px', color:'#1a1a1a', background: estudianteAsignar?.id === e.id ? '#f0f7e6' : 'white', borderBottom:'0.5px solid #f5f5f5'}}
+                          >
+                            {e.nombre} {e.comunidad ? `· ${e.comunidad} ${e.nivel}` : '· Sin comunidad'}
+                          </div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+                <div className="ap-field">
+                  <label className="ap-label">Assign to community</label>
+                  <select className="ap-input" value={comunidadAsignar} onChange={(e) => setComunidadAsignar(e.target.value)}>
+                    <option value="">Select community...</option>
+                    {comunidades.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre} {c.nivel}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="ap-edit-btns">
+                  <button className="ap-save" onClick={asignarEstudianteExistente} disabled={!estudianteAsignar || !comunidadAsignar}>
+                    Assign
+                  </button>
+                  <button className="ap-cancel" onClick={() => { setFormulario(null); setEstudianteBusqueda(''); setEstudianteAsignar(null) }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {comunidades.map(c => {
+              const ests = estudiantes.filter(e => e.comunidad === c.nombre && e.nivel === c.nivel)
+              const abierta = comunidadAbierta === c.id
+              return (
+                <div key={c.id} className="ap-group">
+                  <div className="ap-group-header" onClick={() => setComunidadAbierta(abierta ? null : c.id)}>
+                    <div className="ap-group-left">
+                      <span>🎒</span>
+                      <span className="ap-group-name">{c.nombre} {c.nivel}</span>
+                      <span className="ap-group-count">{ests.length}</span>
+                    </div>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                      <span style={{fontSize:'11px', color:'#aaa'}}>
+                        {tutores.find(t => t.id === c.tutor_id)?.nombre || 'Sin tutor'}
+                      </span>
+                      <button
+                        className="ap-btn-delete"
+                        style={{fontSize:'12px', padding:'4px 8px'}}
+                        onClick={(e) => { e.stopPropagation(); eliminarComunidad(c.id) }}
+                      >
+                        <i className="ti ti-trash" aria-hidden="true"></i>
+                      </button>
+                      <i className={`ti ti-chevron-down ap-chevron ${abierta ? 'open' : ''}`} aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  {abierta && (
+                    <div className="ap-group-body">
+                      {ests.length === 0 && (
+                        <p style={{fontSize:'12px', color:'#aaa', textAlign:'center', padding:'1rem'}}>No students yet.</p>
+                      )}
+                      {ests.map(e => (
+                        <div key={e.id}>
+                          {moviendo === e.id && (
+                            <div style={{padding:'10px 16px', background:'#f9f9ff', borderBottom:'0.5px solid #eee', display:'flex', gap:'8px', alignItems:'center'}}>
+                              <select
+                                className="ap-input"
+                                style={{flex:1}}
+                                value={comunidadDestino}
+                                onChange={(ev) => setComunidadDestino(ev.target.value)}
+                              >
+                                <option value="">Move to...</option>
+                                {comunidades.filter(x => x.id !== c.id).map(x => (
+                                  <option key={x.id} value={x.id}>{x.nombre} {x.nivel}</option>
+                                ))}
+                              </select>
+                              <button className="ap-save" style={{padding:'6px 12px'}} onClick={() => moverEstudiante(e)}>Move</button>
+                              <button className="ap-cancel" style={{padding:'6px 12px'}} onClick={() => setMoviendo(null)}>Cancel</button>
+                            </div>
+                          )}
+                          {resetUser?.id === e.id && (
+                            <div className="ap-edit-panel">
+                              <p className="ap-edit-title">Reset password — {e.nombre}</p>
+                              <div className="ap-pw-box" style={{marginBottom: '10px'}}>
+                                <span className="ap-pw-val">{nuevoPassword || '—'}</span>
+                                <button className="ap-pw-copy" onClick={copiarReset}>
+                                  {copiadoReset ? '✓ Copied!' : '📋 Copy'}
+                                </button>
+                              </div>
+                              <div className="ap-field">
+                                <label className="ap-label">New password</label>
+                                <input className="ap-input" type="text" placeholder="Enter new password..." value={nuevoPassword} onChange={(ev) => setNuevoPassword(ev.target.value)} />
+                              </div>
+                              <div className="ap-edit-btns">
+                                <button className="ap-save" onClick={resetPassword} disabled={guardando}>
+                                  {guardando ? 'Resetting...' : 'Reset password'}
+                                </button>
+                                <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword('') }}>Cancel</button>
+                              </div>
+                            </div>
+                          )}
+                          <div className="ap-vol-row">
+                            <div className="ap-avatar">
+                              {e.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+                            </div>
+                            <div className="ap-vol-info">
+                              <p className="ap-vol-name">{e.nombre}</p>
+                              <p className="ap-vol-role">Estudiante</p>
+                            </div>
+                            <div className="ap-vol-btns">
+                              <button className="ap-btn-edit" onClick={() => { setMoviendo(e.id); setComunidadDestino(''); setResetUser(null) }}>
+                                Move
+                              </button>
+                              <button className="ap-btn-reset" onClick={() => { setResetUser(e); setNuevoPassword(generarPassword()); setMoviendo(null) }}>
+                                🔑 Reset
+                              </button>
+                              <button className="ap-btn-deact" onClick={() => marcarEstudianteInactivo(e.id)}>
+                                Inactive
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {comunidades.length === 0 && (
+              <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'3rem'}}>No communities yet. Add one above.</p>
+            )}
+          </div>
+        )}
+
         {tab === 'inactive' && (
           <div>
-            {inactivos.length === 0 && (
-              <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'3rem'}}>No inactive volunteers.</p>
+            <p className="ap-section">Volunteers</p>
+            {inactivos.filter(u => !u.roles_anteriores?.includes('estudiante')).length === 0 && (
+              <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'1rem'}}>No inactive volunteers.</p>
             )}
-            {inactivos.map(u => (
+            {inactivos.filter(u => !u.roles_anteriores?.includes('estudiante')).map(u => (
               <div key={u.id} className="ap-vol-row" style={{opacity: 0.6}}>
                 <div className="ap-avatar" style={{background:'#f0f0f0', color:'#aaa'}}>
                   {u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
@@ -432,6 +823,28 @@ function AdminPanel() {
                 <div className="ap-vol-info">
                   <p className="ap-vol-name">{u.nombre}</p>
                   <p className="ap-vol-role">{u.titulo}</p>
+                </div>
+                <div className="ap-vol-btns">
+                  <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>
+                  {esAdmin && (
+                    <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <p className="ap-section" style={{marginTop:'1.5rem'}}>Students</p>
+            {inactivos.filter(u => u.roles_anteriores?.includes('estudiante')).length === 0 && (
+              <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'1rem'}}>No inactive students.</p>
+            )}
+            {inactivos.filter(u => u.roles_anteriores?.includes('estudiante')).map(u => (
+              <div key={u.id} className="ap-vol-row" style={{opacity: 0.6}}>
+                <div className="ap-avatar" style={{background:'#f0f0f0', color:'#aaa'}}>
+                  {u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+                </div>
+                <div className="ap-vol-info">
+                  <p className="ap-vol-name">{u.nombre}</p>
+                  <p className="ap-vol-role">Estudiante</p>
                 </div>
                 <div className="ap-vol-btns">
                   <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>

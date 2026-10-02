@@ -404,3 +404,32 @@
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
 }
+
+.ap-student-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.ap-student-btn {
+  padding: 12px;
+  border-radius: 12px;
+  border: 0.5px solid #eee;
+  background: white;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ap-student-btn.active {
+  border-color: #a9cb5a;
+  background: #f0f7e6;
+  color: #3B6D11;
+}
