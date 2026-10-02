@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+
+.est-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.est-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.est-name {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.est-sub {
+  font-size: 0.95rem;
+  color: #aaa;
+  margin: 0;
+}
+
+.est-signout {
+  font-size: 12px;
+  color: #888;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  padding: 7px 14px;
+  background: white;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.est-clase-banner {
+  background: #f0f7e6;
+  border: 0.5px solid #c0dd97;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.est-clase-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3B6D11;
+  flex-shrink: 0;
+}
+
+.est-clase-info { flex: 1; }
+
+.est-clase-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3B6D11;
+  margin: 0;
+}
+
+.est-clase-detalle {
+  font-size: 11px;
+  color: #3B6D11;
+  margin: 2px 0 0;
+  opacity: 0.75;
+}
+
+.est-clase-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.est-falta-alert {
+  background: #fffbeb;
+  border: 0.5px solid #fde68a;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.est-falta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.est-falta-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0;
+}
+
+.est-falta-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: #92400e;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.est-falta-row {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0.5px solid #eee;
+}
+
+.est-falta-fecha {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.est-falta-input {
+  flex: 1;
+  border: 0.5px solid #eee;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #1a1a1a;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  background: white;
+  color-scheme: light;
+}
+
+.est-falta-send {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.est-falta-timer {
+  font-size: 11px;
+  color: #92400e;
+  margin: 8px 0 0;
+}
+
+.est-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.est-metric {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.est-metric-n {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.est-metric-l {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.est-sl {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  margin-top: 1.25rem;
+}
+
+.est-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.est-mod {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.est-mod:hover { border-color: #ccc; }
+
+.est-mod-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.est-mod-emoji { font-size: 24px; }
+.est-mod-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin-bottom: 3px; }
+.est-mod-desc { font-size: 11px; color: #aaa; line-height: 1.4; }
+
+.est-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.badge-warn { background: #fffbeb; color: #92400e; border: 0.5px solid #fde68a; }
+
+.est-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.est-ann-row {
+  padding: 10px 0;
+  border-bottom: 0.5px solid #f5f5f5;
+}
+
+.est-ann-row:last-child { border-bottom: none; }
+.est-ann-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.est-ann-meta { font-size: 11px; color: #aaa; margin: 2px 0 0; }

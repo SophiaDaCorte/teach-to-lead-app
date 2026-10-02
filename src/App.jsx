@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import PaginaVoluntarios from './pages/PaginaVoluntarios.jsx'
-import PaginaEstudiantes from './pages/PaginaEstudiantes.jsx'
 import Login from './pages/Login.jsx'
 import RutaProtegida from './components/RutaProtegida.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -14,6 +13,7 @@ import WeekOff from './pages/WeekOff.jsx'
 import Certificates from './pages/Certificates.jsx'
 import WeeklyReport from './pages/WeeklyReport.jsx'
 import AdminReports from './pages/AdminReports.jsx'
+import EstudianteDashboard from './pages/EstudianteDashboard.jsx'
 
 function App() {
   return (
@@ -29,14 +29,6 @@ function App() {
             </RutaProtegida>
           }>
         </Route>
-        <Route
-          path="/estudiantes"
-          element={
-            <RutaProtegida>
-              <PaginaEstudiantes />
-            </RutaProtegida>
-          }>  
-      </Route>
       <Route
           path="/dashboard"
           element={
@@ -98,6 +90,12 @@ function App() {
         <Route path="/admin-reports" element={
             <RutaProtegida>
               <AdminReports />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/estudiantes" element={
+            <RutaProtegida>
+              <EstudianteDashboard />
             </RutaProtegida>
           }>
         </Route>
