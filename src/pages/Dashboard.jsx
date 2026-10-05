@@ -105,9 +105,7 @@ function Dashboard() {
   return (
     <div className="page-wrapper">
       <div className="doodle-layer">
-        {doodles.map((d, i) => (
-          <Doodle key={i} {...d} />
-        ))}
+        {doodles.map((d, i) => <Doodle key={i} {...d} />)}
       </div>
 
       <div className="dash-content">
@@ -159,9 +157,7 @@ function Dashboard() {
 
           {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('director_of_schools') || roles.includes('staff_marketing')) && (
             <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">👑</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">👑</span></div>
               <div className="dash-mod-title">Admin panel</div>
               <div className="dash-mod-desc">Manage users and roles</div>
             </div>
@@ -169,9 +165,7 @@ function Dashboard() {
 
           {roles.includes('director_of_schools') && (
             <div className="dash-mod" onClick={() => navigate('/class-observations')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📋</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📋</span></div>
               <div className="dash-mod-title">Class observations</div>
               <div className="dash-mod-desc">Report and view class visits</div>
             </div>
@@ -190,9 +184,7 @@ function Dashboard() {
 
           {roles.includes('staff_admin') && (
             <div className="dash-mod" onClick={() => navigate('/admin-reports')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📊</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📊</span></div>
               <div className="dash-mod-title">Staff reports</div>
               <div className="dash-mod-desc">Weekly reports and observations</div>
             </div>
@@ -200,9 +192,7 @@ function Dashboard() {
 
           {(roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
             <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">⏱️</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">⏱️</span></div>
               <div className="dash-mod-title">Manage hours</div>
               <div className="dash-mod-desc">Edit volunteer hours</div>
             </div>
@@ -210,19 +200,25 @@ function Dashboard() {
 
           {(roles.includes('staff_marketing') || roles.includes('marketing_interns')) && (
             <div className="dash-mod" onClick={() => navigate('/content-hub')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🎬</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">🎬</span></div>
               <div className="dash-mod-title">Content hub</div>
               <div className="dash-mod-desc">Assign and upload content</div>
             </div>
           )}
 
+          {(roles.includes('staff_marketing') || roles.includes('marketing_interns')) && (
+            <div className="dash-mod" onClick={() => navigate('/outreach')} style={{cursor: 'pointer'}}>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📣</span></div>
+              <div className="dash-mod-title">Outreach</div>
+              <div className="dash-mod-desc">
+                {roles.includes('marketing_interns') ? 'My assignments' : 'Creators and events'}
+              </div>
+            </div>
+          )}
+
           {roles.includes('tutors') && (
             <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🎓</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">🎓</span></div>
               <div className="dash-mod-title">My class</div>
               <div className="dash-mod-desc">Students, attendance and grades</div>
             </div>
@@ -230,9 +226,7 @@ function Dashboard() {
 
           {roles.includes('tutors') && (
             <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📖</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📖</span></div>
               <div className="dash-mod-title">Student book</div>
               <div className="dash-mod-desc">View and share course book</div>
             </div>
@@ -240,9 +234,7 @@ function Dashboard() {
 
           {roles.includes('tutors') && (
             <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📸</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📸</span></div>
               <div className="dash-mod-title">Class photos</div>
               <div className="dash-mod-desc">Upload weekly class photos</div>
             </div>
@@ -250,9 +242,7 @@ function Dashboard() {
 
           {roles.includes('creation') && (
             <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🗂️</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">🗂️</span></div>
               <div className="dash-mod-title">My projects</div>
               <div className="dash-mod-desc">View assigned projects</div>
             </div>
@@ -260,9 +250,7 @@ function Dashboard() {
 
           {roles.includes('creation') && (
             <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">✔️</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">✔️</span></div>
               <div className="dash-mod-title">What I've done</div>
               <div className="dash-mod-desc">Log your completed work</div>
             </div>
@@ -270,9 +258,7 @@ function Dashboard() {
 
           {!roles.includes('staff_admin') && (
             <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🏖️</span>
-              </div>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">🏖️</span></div>
               <div className="dash-mod-title">Week off</div>
               <div className="dash-mod-desc">Request a week off</div>
             </div>
@@ -299,41 +285,31 @@ function Dashboard() {
           </div>
 
           <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor: 'pointer'}}>
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">⏰</span>
-            </div>
+            <div className="dash-mod-top"><span className="dash-mod-emoji">⏰</span></div>
             <div className="dash-mod-title">My hours</div>
             <div className="dash-mod-desc">View and request cert</div>
           </div>
 
           <div className="dash-mod" onClick={() => navigate('/announcements')} style={{cursor: 'pointer'}}>
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">📢</span>
-            </div>
+            <div className="dash-mod-top"><span className="dash-mod-emoji">📢</span></div>
             <div className="dash-mod-title">Announcements</div>
             <div className="dash-mod-desc">Post to any team</div>
           </div>
 
           <div className="dash-mod">
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">📁</span>
-            </div>
+            <div className="dash-mod-top"><span className="dash-mod-emoji">📁</span></div>
             <div className="dash-mod-title">Drive</div>
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
           <div className="dash-mod" onClick={() => navigate('/checklist')} style={{cursor: 'pointer'}}>
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">✅</span>
-            </div>
+            <div className="dash-mod-top"><span className="dash-mod-emoji">✅</span></div>
             <div className="dash-mod-title">Checklists</div>
             <div className="dash-mod-desc">My weekly tasks</div>
           </div>
 
           <div className="dash-mod">
-            <div className="dash-mod-top">
-              <span className="dash-mod-emoji">📤</span>
-            </div>
+            <div className="dash-mod-top"><span className="dash-mod-emoji">📤</span></div>
             <div className="dash-mod-title">Files</div>
             <div className="dash-mod-desc">Upload and share files</div>
           </div>
@@ -357,7 +333,6 @@ function Dashboard() {
             View all announcements
           </button>
         </div>
-
       </div>
     </div>
   )

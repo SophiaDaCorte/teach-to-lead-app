@@ -16,6 +16,7 @@ import AdminReports from './pages/AdminReports.jsx'
 import EstudianteDashboard from './pages/EstudianteDashboard.jsx'
 import ClassObservations from './pages/ClassObservations.jsx'
 import ContentHub from './pages/ContentHub.jsx'
+import Outreach from './pages/Outreach.jsx'
 
 function App() {
   return (
@@ -110,6 +111,12 @@ function App() {
         <Route path="/content-hub" element={
             <RutaProtegida>
               <ContentHub />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/outreach" element={
+            <RutaProtegida>
+              <Outreach />
             </RutaProtegida>
           }>
         </Route>
