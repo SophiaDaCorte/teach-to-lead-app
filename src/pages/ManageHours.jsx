@@ -54,23 +54,30 @@ function ManageHours() {
       Staff: voluntarios.filter(u =>
         u.roles.includes('staff_regular') ||
         u.roles.includes('volunteer_coordinator') ||
-        u.roles.includes('director_of_programs')
+        u.roles.includes('director_of_programs') ||
+        u.roles.includes('director_of_schools')
       ),
-      Marketing: voluntarios.filter(u =>
-        u.roles.includes('staff_marketing') ||
-        u.roles.includes('marketing_interns')
-      ),
+      'Marketing Directors': voluntarios.filter(u => u.roles.includes('staff_marketing')),
+      'Marketing Interns': voluntarios.filter(u => u.roles.includes('marketing_interns')),
       Tutors: voluntarios.filter(u => u.roles.includes('tutors')),
       Creation: voluntarios.filter(u => u.roles.includes('creation')),
     }
     if (roles.includes('staff_admin')) return todos
     if (roles.includes('volunteer_coordinator')) return { Tutors: todos.Tutors, Creation: todos.Creation }
-    if (roles.includes('staff_marketing')) return { Marketing: todos.Marketing }
+    if (roles.includes('staff_marketing')) return {
+      'Marketing Directors': todos['Marketing Directors'],
+      'Marketing Interns': todos['Marketing Interns']
+    }
     return {}
   }
 
   const grupoEmojis = {
-    Leadership: '👑', Staff: '👥', Marketing: '📣', Tutors: '🎓', Creation: '🎨'
+    Leadership: '👑',
+    Staff: '👥',
+    'Marketing Directors': '📣',
+    'Marketing Interns': '🎬',
+    Tutors: '🎓',
+    Creation: '🎨'
   }
 
   function abrirEdicion(voluntario) {
@@ -126,12 +133,25 @@ function ManageHours() {
             </div>
 
             <div className="mh-current-row">
-              <div className="mh-curr"><div className="mh-curr-n">{editando.horas.content_hrs}</div><div className="mh-curr-l">Current content</div></div>
-              <div className="mh-curr"><div className="mh-curr-n">{editando.horas.meeting_hrs}</div><div className="mh-curr-l">Current meeting</div></div>
-              <div className="mh-curr mh-curr-total"><div className="mh-curr-n">{editando.horas.total_hrs}</div><div className="mh-curr-l">Current total</div></div>
+              <div className="mh-curr">
+                <div className="mh-curr-n">{editando.horas.content_hrs}</div>
+                <div className="mh-curr-l">Current content</div>
+              </div>
+              <div className="mh-curr">
+                <div className="mh-curr-n">{editando.horas.meeting_hrs}</div>
+                <div className="mh-curr-l">Current meeting</div>
+              </div>
+              <div className="mh-curr mh-curr-total">
+                <div className="mh-curr-n">{editando.horas.total_hrs}</div>
+                <div className="mh-curr-l">Current total</div>
+              </div>
             </div>
 
-            <div className="mh-divider"><div className="mh-divider-line"></div><span className="mh-divider-text">Hours to add</span><div className="mh-divider-line"></div></div>
+            <div className="mh-divider">
+              <div className="mh-divider-line"></div>
+              <span className="mh-divider-text">Hours to add</span>
+              <div className="mh-divider-line"></div>
+            </div>
 
             <div className="mh-add-fields">
               <div className="mh-field">
