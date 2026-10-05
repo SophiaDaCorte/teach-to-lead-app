@@ -15,6 +15,7 @@ import WeeklyReport from './pages/WeeklyReport.jsx'
 import AdminReports from './pages/AdminReports.jsx'
 import EstudianteDashboard from './pages/EstudianteDashboard.jsx'
 import ClassObservations from './pages/ClassObservations.jsx'
+import ContentHub from './pages/ContentHub.jsx'
 
 function App() {
   return (
@@ -103,6 +104,12 @@ function App() {
         <Route path="/class-observations" element={
             <RutaProtegida>
               <ClassObservations />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/content-hub" element={
+            <RutaProtegida>
+              <ContentHub />
             </RutaProtegida>
           }>
         </Route>

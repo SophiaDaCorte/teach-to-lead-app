@@ -111,7 +111,6 @@ function Dashboard() {
       </div>
 
       <div className="dash-content">
-
         <div className="dash-topbar">
           <div>
             <h1 className="dash-name">Hey, {perfil.nombre} 👋</h1>
@@ -158,13 +157,13 @@ function Dashboard() {
         <p className="dash-sl">Quick access</p>
         <div className="dash-modules">
 
-          {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('director_of_schools')) && (
+          {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('director_of_schools') || roles.includes('staff_marketing')) && (
             <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">👑</span>
               </div>
               <div className="dash-mod-title">Admin panel</div>
-              <div className="dash-mod-desc">Manage all users and roles</div>
+              <div className="dash-mod-desc">Manage users and roles</div>
             </div>
           )}
 
@@ -190,53 +189,32 @@ function Dashboard() {
           )}
 
           {roles.includes('staff_admin') && (
-            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🏖️</span>
-                {weekOffCount > 0 && <span className="dash-badge badge-warn">{weekOffCount} new</span>}
-              </div>
-              <div className="dash-mod-title">Week off</div>
-              <div className="dash-mod-desc">Review all requests</div>
-            </div>
-          )}
-
-          {roles.includes('staff_admin') && (
             <div className="dash-mod" onClick={() => navigate('/admin-reports')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📋</span>
-              </div>
-              <div className="dash-mod-title">General reports</div>
-              <div className="dash-mod-desc">Review and approve</div>
-            </div>
-          )}
-
-          {roles.includes('staff_marketing') && (
-            <div className="dash-mod">
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📊</span>
               </div>
-              <div className="dash-mod-title">Team hours</div>
-              <div className="dash-mod-desc">View and edit marketing hours</div>
+              <div className="dash-mod-title">Staff reports</div>
+              <div className="dash-mod-desc">Weekly reports and observations</div>
             </div>
           )}
 
-          {roles.includes('staff_marketing') && (
-            <div className="dash-mod">
+          {(roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
+            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
-                <span className="dash-mod-emoji">🎯</span>
+                <span className="dash-mod-emoji">⏱️</span>
               </div>
-              <div className="dash-mod-title">Content topics</div>
-              <div className="dash-mod-desc">Manage team topics</div>
+              <div className="dash-mod-title">Manage hours</div>
+              <div className="dash-mod-desc">Edit volunteer hours</div>
             </div>
           )}
 
-          {(roles.includes('marketing_interns') || roles.includes('staff_marketing')) && (
-            <div className="dash-mod">
+          {(roles.includes('staff_marketing') || roles.includes('marketing_interns')) && (
+            <div className="dash-mod" onClick={() => navigate('/content-hub')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🎬</span>
               </div>
-              <div className="dash-mod-title">My content</div>
-              <div className="dash-mod-desc">Upload videos and posts</div>
+              <div className="dash-mod-title">Content hub</div>
+              <div className="dash-mod-desc">Assign and upload content</div>
             </div>
           )}
 
@@ -290,7 +268,7 @@ function Dashboard() {
             </div>
           )}
 
-          {(roles.includes('staff_regular') || roles.includes('marketing_interns') || roles.includes('creation') || roles.includes('tutors') || roles.includes('volunteer_coordinator') || roles.includes('staff_marketing') || roles.includes('director_of_programs') || roles.includes('director_of_schools')) && (
+          {!roles.includes('staff_admin') && (
             <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🏖️</span>
@@ -300,26 +278,25 @@ function Dashboard() {
             </div>
           )}
 
-          {(roles.includes('staff_regular') || roles.includes('staff_admin') || roles.includes('staff_marketing') || roles.includes('director_of_schools') || roles.includes('volunteer_coordinator') || roles.includes('director_of_programs')) && (
-            <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
+          {roles.includes('staff_admin') && (
+            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
               <div className="dash-mod-top">
-                <span className="dash-mod-emoji">📝</span>
-                {reportePendiente && <span className="dash-badge badge-new">Pending</span>}
+                <span className="dash-mod-emoji">🏖️</span>
+                {weekOffCount > 0 && <span className="dash-badge badge-warn">{weekOffCount} new</span>}
               </div>
-              <div className="dash-mod-title">Weekly report</div>
-              <div className="dash-mod-desc">Submit your weekly report</div>
+              <div className="dash-mod-title">Week off</div>
+              <div className="dash-mod-desc">Review all requests</div>
             </div>
           )}
 
-          {roles.includes('director_of_programs') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">👥</span>
-              </div>
-              <div className="dash-mod-title">Volunteers</div>
-              <div className="dash-mod-desc">View all volunteers</div>
+          <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod-top">
+              <span className="dash-mod-emoji">📝</span>
+              {reportePendiente && <span className="dash-badge badge-new">Pending</span>}
             </div>
-          )}
+            <div className="dash-mod-title">Weekly report</div>
+            <div className="dash-mod-desc">Submit your weekly report</div>
+          </div>
 
           <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor: 'pointer'}}>
             <div className="dash-mod-top">
@@ -360,16 +337,6 @@ function Dashboard() {
             <div className="dash-mod-title">Files</div>
             <div className="dash-mod-desc">Upload and share files</div>
           </div>
-
-          {roles.includes('staff_admin') && (
-            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
-              <div className="dash-mod-top">
-                <span className="dash-mod-emoji">⏱️</span>
-              </div>
-              <div className="dash-mod-title">Manage hours</div>
-              <div className="dash-mod-desc">Edit volunteer hours</div>
-            </div>
-          )}
 
         </div>
 
