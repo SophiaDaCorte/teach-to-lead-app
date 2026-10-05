@@ -17,6 +17,7 @@ import EstudianteDashboard from './pages/EstudianteDashboard.jsx'
 import ClassObservations from './pages/ClassObservations.jsx'
 import ContentHub from './pages/ContentHub.jsx'
 import Outreach from './pages/Outreach.jsx'
+import MyProjects from './pages/MyProjects.jsx'
 
 function App() {
   return (
@@ -117,6 +118,12 @@ function App() {
         <Route path="/outreach" element={
             <RutaProtegida>
               <Outreach />
+            </RutaProtegida>
+          }>
+        </Route>
+        <Route path="/my-projects" element={
+            <RutaProtegida>
+              <MyProjects />
             </RutaProtegida>
           }>
         </Route>

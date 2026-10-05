@@ -1,0 +1,310 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+.mp-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.mp-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+  display: block;
+}
+
+.mp-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.mp-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.mp-new-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.mp-new-btn.active { background: #eee; color: #888; }
+
+.mp-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.mp-tab {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mp-tab.active {
+  background: white;
+  color: #1a1a1a;
+  font-weight: 500;
+  border: 0.5px solid #eee;
+}
+
+.mp-tab-count {
+  font-size: 10px;
+  background: #f0f0f0;
+  color: #888;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.mp-badge-sm {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #FCEBEB;
+  color: #A32D2D;
+}
+
+.mp-form {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.mp-form-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 12px;
+}
+
+.mp-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mp-field { margin-bottom: 10px; }
+
+.mp-label {
+  font-size: 11px;
+  color: #555;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.mp-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  background: white;
+  color-scheme: light;
+}
+
+.mp-input:focus { border-color: #2d2a86; }
+
+.mp-textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 12px;
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  background: white;
+  color-scheme: light;
+}
+
+.mp-form-btns { display: flex; gap: 8px; margin-top: 12px; }
+
+.mp-save {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.mp-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.mp-cancel {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 0.5px solid #eee;
+  background: none;
+  font-size: 13px;
+  color: #aaa;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.mp-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.mp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.mp-card-header:hover { background: #f9f9f9; }
+
+.mp-tipo-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #EEEDFE;
+  color: #3C3489;
+  flex-shrink: 0;
+}
+
+.mp-card-info { flex: 1; }
+.mp-card-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.mp-card-sub { font-size: 11px; color: #aaa; margin: 0; }
+
+.mp-card-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.mp-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge-available { background: #f0f7e6; color: #3B6D11; }
+.badge-progress { background: #EEEDFE; color: #3C3489; }
+.badge-done { background: #f0fdf4; color: #15803d; }
+
+.mp-edit-btn {
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 0.5px solid #eee;
+  background: none;
+  color: #555;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mp-delete-btn {
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 0.5px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mp-chevron { font-size: 14px; color: #aaa; }
+
+.mp-card-body {
+  border-top: 0.5px solid #eee;
+  padding: 12px 16px;
+}
+
+.mp-field-label {
+  font-size: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 3px;
+}
+
+.mp-field-value { font-size: 13px; color: #1a1a1a; margin: 0; line-height: 1.5; }
+.mp-field-row { display: flex; flex-direction: column; gap: 3px; }
+
+.mp-tarea {
+  border: 0.5px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.mp-tarea-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #f9f9f9;
+}
+
+.mp-tarea-header:hover { background: #f0f0f0; }
+.mp-tarea-info { flex: 1; }
+.mp-tarea-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.mp-tarea-sub { font-size: 11px; color: #aaa; margin: 0; }
+
+.mp-tarea-body {
+  padding: 10px 12px;
+  background: white;
+  border-top: 0.5px solid #eee;
+}
+
+.badge-late {
+  background: #FCEBEB;
+  color: #A32D2D;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.mp-badge-red {
+  background: #FCEBEB;
+  color: #A32D2D;
+}
