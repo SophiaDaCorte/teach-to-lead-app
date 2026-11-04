@@ -24,10 +24,17 @@ const GRUPO_EMOJIS = {
 function generarPassword() {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#'
   let pass = 'Ttl@'
-  for (let i = 0; i < 6; i++) {
-    pass += chars[Math.floor(Math.random() * chars.length)]
-  }
+  for (let i = 0; i < 6; i++) pass += chars[Math.floor(Math.random() * chars.length)]
   return pass
+}
+
+async function mensajeError(error, data) {
+  if (data?.error) return data.error
+  try {
+    const cuerpo = await error.context.json()
+    if (cuerpo?.error) return cuerpo.error
+  } catch {}
+  return error?.message || 'Something went wrong.'
 }
 
 function AdminPanel() {
@@ -36,7 +43,6 @@ function AdminPanel() {
   const [tab, setTab] = useState('add')
   const [perfilActual, setPerfilActual] = useState(null)
 
-  // Add volunteer
   const [nombre, setNombre] = useState('')
   const [titulo, setTitulo] = useState('')
   const [email, setEmail] = useState('')
@@ -48,7 +54,6 @@ function AdminPanel() {
   const [errorMsg, setErrorMsg] = useState('')
   const [copiado, setCopiado] = useState(false)
 
-  // Manage volunteers
   const [voluntarios, setVoluntarios] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [grupoAbierto, setGrupoAbierto] = useState(null)
@@ -62,7 +67,6 @@ function AdminPanel() {
   const [copiadoReset, setCopiadoReset] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
-  // Manage students
   const [comunidades, setComunidades] = useState([])
   const [estudiantes, setEstudiantes] = useState([])
   const [tutores, setTutores] = useState([])
@@ -92,11 +96,7 @@ function AdminPanel() {
     async function cargarPerfil() {
       const { data: session } = await supabase.auth.getSession()
       if (session.session) {
-        const { data } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', session.session.user.id)
-          .single()
+        const { data } = await supabase.from('perfiles').select('*').eq('id', session.session.user.id).single()
         setPerfilActual(data)
       }
     }
@@ -136,44 +136,35 @@ function AdminPanel() {
 
   async function agregarEstudiante() {
     if (!estudianteNombre.trim() || !estudianteEmail.trim() || !estudianteComunidad) {
-      setErrorEst('Please fill in all fields.')
-      return
+      setErrorEst('Please fill in all fields.'); return
     }
-    setCargando(true)
-    setErrorEst('')
+    setCargando(true); setErrorEst('')
     const comunidadObj = comunidades.find(c => c.id === estudianteComunidad)
     const { data, error } = await supabase.functions.invoke('create-user', {
       body: {
-        nombre: estudianteNombre,
+        nombre: estudianteNombre.trim(),
         titulo: 'Estudiante',
         roles: ['estudiante'],
         email: estudianteEmail,
         password: estudiantePassword,
+        telefono: estudianteTelefono.trim() || null,
         comunidad: comunidadObj?.nombre || null,
         nivel: comunidadObj?.nivel || null
       }
     })
-    if (!error && !data?.error) {
-      if (estudianteTelefono.trim()) {
-        const { data: newUser } = await supabase.from('perfiles').select('id').eq('nombre', estudianteNombre).single()
-        if (newUser) await supabase.from('perfiles').update({ telefono: estudianteTelefono }).eq('id', newUser.id)
-      }
-      setExitoEst(estudianteNombre)
-      setTimeout(() => setExitoEst(null), 4000)
-      setEstudianteNombre(''); setEstudianteEmail(''); setEstudianteTelefono(''); setEstudianteComunidad('')
-      setEstudiantePassword(generarPassword()); setFormulario(null)
-      await cargarDatosEstudiantes()
+    if (error || data?.error) {
+      setErrorEst(await mensajeError(error, data))
     } else {
-      setErrorEst(error?.message || data?.error || 'Something went wrong.')
+      setExitoEst(estudianteNombre); setTimeout(() => setExitoEst(null), 4000)
+      setEstudianteNombre(''); setEstudianteEmail(''); setEstudianteTelefono('')
+      setEstudianteComunidad(''); setEstudiantePassword(generarPassword()); setFormulario(null)
+      await cargarDatosEstudiantes()
     }
     setCargando(false)
   }
 
   async function guardarEdicionEstudiante(e) {
-    await supabase.from('perfiles').update({
-      nombre: nombreEstEditando,
-      telefono: telefonoEstEditando
-    }).eq('id', e.id)
+    await supabase.from('perfiles').update({ nombre: nombreEstEditando, telefono: telefonoEstEditando }).eq('id', e.id)
     setEditandoEst(null)
     await cargarDatosEstudiantes()
   }
@@ -188,6 +179,28 @@ function AdminPanel() {
 
   async function marcarEstudianteInactivo(id) {
     await supabase.from('perfiles').update({ roles: ['inactivo'], roles_anteriores: ['estudiante'] }).eq('id', id)
+    await cargarDatosEstudiantes()
+  }
+
+  async function borrarDatosYUsuario(id) {
+    await supabase.from('asistencia').delete().eq('estudiante_id', id)
+    await supabase.from('gradebook_notas').delete().eq('estudiante_id', id)
+    await supabase.from('checklists').delete().eq('asignado_a', id)
+    await supabase.from('horas').delete().eq('user_id', id)
+    await supabase.from('weekly_reports').delete().eq('user_id', id)
+    await supabase.from('solicitudes_certificado').delete().eq('user_id', id)
+    await supabase.from('solicitudes_week_off').delete().eq('user_id', id)
+    await supabase.from('observaciones_clase').delete().eq('user_id', id)
+    await supabase.from('content_hub').delete().eq('reclamado_por', id)
+    await supabase.from('advertencias').delete().eq('user_id', id)
+    await supabase.from('proyecto_tareas').delete().eq('asignado_a', id)
+    await supabase.from('outreach_events').delete().eq('asignado_a', id)
+    await supabase.from('perfiles').delete().eq('id', id)
+    await supabase.functions.invoke('delete-user', { body: { userId: id } })
+  }
+
+  async function eliminarEstudiantePermanente(id) {
+    await borrarDatosYUsuario(id)
     await cargarDatosEstudiantes()
   }
 
@@ -228,24 +241,26 @@ function AdminPanel() {
 
   async function agregarVoluntario() {
     if (!nombre.trim() || !email.trim() || !titulo.trim() || rolesSeleccionados.length === 0) {
-      setErrorMsg('Please fill in all fields and select at least one role.')
-      return
+      setErrorMsg('Please fill in all fields and select at least one role.'); return
     }
-    setCargando(true)
-    setErrorMsg('')
+    setCargando(true); setErrorMsg('')
     const { data, error } = await supabase.functions.invoke('create-user', {
-      body: { nombre, titulo, roles: rolesSeleccionados, email, password }
-    })
-    if (!error && !data?.error) {
-      if (telefono.trim()) {
-        const { data: newUser } = await supabase.from('perfiles').select('id').eq('nombre', nombre).single()
-        if (newUser) await supabase.from('perfiles').update({ telefono }).eq('id', newUser.id)
+      body: {
+        nombre: nombre.trim(),
+        titulo,
+        roles: rolesSeleccionados,
+        email,
+        password,
+        telefono: telefono.trim() || null
       }
-      setExito(nombre)
-      setTimeout(() => setExito(null), 4000)
-      setNombre(''); setTitulo(''); setEmail(''); setTelefono(''); setRolesSeleccionados([]); setPassword(generarPassword())
+    })
+    if (error || data?.error) {
+      setErrorMsg(await mensajeError(error, data))
     } else {
-      setErrorMsg(error?.message || data?.error || 'Something went wrong.')
+      setExito(nombre); setTimeout(() => setExito(null), 4000)
+      setNombre(''); setTitulo(''); setEmail(''); setTelefono('')
+      setRolesSeleccionados([]); setPassword(generarPassword())
+      await cargarVoluntarios()
     }
     setCargando(false)
   }
@@ -253,23 +268,16 @@ function AdminPanel() {
   async function guardarEdicion() {
     if (!editando) return
     setGuardando(true)
-    await supabase.from('perfiles').update({
-      nombre: nombreEditando,
-      roles: rolesEditando,
-      titulo: tituloEditando,
-      telefono: telefonoEditando
-    }).eq('id', editando.id)
+    await supabase.from('perfiles').update({ nombre: nombreEditando, roles: rolesEditando, titulo: tituloEditando, telefono: telefonoEditando }).eq('id', editando.id)
     await cargarVoluntarios()
-    setEditando(null)
-    setGuardando(false)
+    setEditando(null); setGuardando(false)
   }
 
   async function resetPassword() {
     if (!resetUser || !nuevoPassword.trim()) return
     setGuardando(true)
     await supabase.functions.invoke('reset-password', { body: { userId: resetUser.id, password: nuevoPassword } })
-    setResetUser(null); setNuevoPassword('')
-    setGuardando(false)
+    setResetUser(null); setNuevoPassword(''); setGuardando(false)
   }
 
   async function marcarInactivo(id, rolesActuales) {
@@ -285,9 +293,7 @@ function AdminPanel() {
   }
 
   async function eliminarPermanente(id) {
-    await supabase.from('horas').delete().eq('user_id', id)
-    await supabase.from('checklists').delete().eq('asignado_a', id)
-    await supabase.from('perfiles').delete().eq('id', id)
+    await borrarDatosYUsuario(id)
     await cargarVoluntarios()
   }
 
@@ -335,13 +341,11 @@ function AdminPanel() {
               <label className="ap-label">Phone number</label>
               <input className="ap-input" type="tel" placeholder="+504 9999-9999" value={telefonoEditando} onChange={(e) => setTelefonoEditando(e.target.value)} />
             </div>
-            <div className="ap-field" style={{marginTop: '10px'}}>
+            <div className="ap-field" style={{marginTop:'10px'}}>
               <label className="ap-label">Roles</label>
               <div className="ap-roles">
                 {ROLES_DISPONIBLES.map(r => (
-                  <button key={r.value} className={`ap-role-btn ${rolesEditando.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRolEditando(r.value)}>
-                    {r.label}
-                  </button>
+                  <button key={r.value} className={`ap-role-btn ${rolesEditando.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRolEditando(r.value)}>{r.label}</button>
                 ))}
               </div>
             </div>
@@ -351,11 +355,10 @@ function AdminPanel() {
             </div>
           </div>
         )}
-
         {resetUser?.id === u.id && (
           <div className="ap-edit-panel">
             <p className="ap-edit-title">Reset password — {u.nombre}</p>
-            <div className="ap-pw-box" style={{marginBottom: '10px'}}>
+            <div className="ap-pw-box" style={{marginBottom:'10px'}}>
               <span className="ap-pw-val">{nuevoPassword || '—'}</span>
               <button className="ap-pw-copy" onClick={copiarReset}>{copiadoReset ? '✓ Copied!' : '📋 Copy'}</button>
             </div>
@@ -369,30 +372,22 @@ function AdminPanel() {
             </div>
           </div>
         )}
-
         <div className={`ap-vol-row ${editando?.id === u.id ? 'editing' : ''}`}>
-          <div className="ap-avatar">
-            {u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
-          </div>
+          <div className="ap-avatar">{u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}</div>
           <div className="ap-vol-info">
             <p className="ap-vol-name">{u.nombre}</p>
             <p className="ap-vol-role">{u.titulo}{u.telefono ? ` · ${u.telefono}` : ''}</p>
+            {u.email && <p style={{fontSize:'11px', color:'#aaa', margin:0}}>{u.email}</p>}
             <div className="ap-vol-tags">
               {u.roles.map(r => <span key={r} className="ap-tag">{r}</span>)}
             </div>
           </div>
           <div className="ap-vol-btns">
-            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setResetUser(null) }}>
-              ✏️ Edit
-            </button>
+            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setResetUser(null) }}>✏️ Edit</button>
             {(esAdmin || esMarketing) && (
-              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>
-                🔑 Reset
-              </button>
+              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>🔑 Reset</button>
             )}
-            {esAdmin && (
-              <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>Mark inactive</button>
-            )}
+            {esAdmin && <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>Mark inactive</button>}
           </div>
         </div>
       </div>
@@ -404,7 +399,6 @@ function AdminPanel() {
       <div className="doodle-layer">
         {doodles.map((d, i) => <Doodle key={i} {...d} />)}
       </div>
-
       <div className="ap-content">
         <button className="ap-back" onClick={() => navigate('/dashboard')}>← Back</button>
         <h1 className="ap-title">Admin panel</h1>
@@ -451,13 +445,11 @@ function AdminPanel() {
                 <label className="ap-label">Role (can select multiple)</label>
                 <div className="ap-roles">
                   {rolesParaMostrar.map(r => (
-                    <button key={r.value} className={`ap-role-btn ${rolesSeleccionados.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRol(r.value)}>
-                      {r.label}
-                    </button>
+                    <button key={r.value} className={`ap-role-btn ${rolesSeleccionados.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRol(r.value)}>{r.label}</button>
                   ))}
                 </div>
               </div>
-              <div className="ap-field" style={{marginTop: '14px'}}>
+              <div className="ap-field" style={{marginTop:'14px'}}>
                 <label className="ap-label">Email</label>
                 <input className="ap-input" type="email" placeholder="anjola@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
@@ -515,7 +507,7 @@ function AdminPanel() {
             </div>
 
             {formulario === 'community' && (
-              <div className="ap-card" style={{marginBottom: '1rem'}}>
+              <div className="ap-card" style={{marginBottom:'1rem'}}>
                 <p className="ap-edit-title">New community</p>
                 <div className="ap-row2">
                   <div className="ap-field">
@@ -542,7 +534,7 @@ function AdminPanel() {
             )}
 
             {formulario === 'student' && (
-              <div className="ap-card" style={{marginBottom: '1rem'}}>
+              <div className="ap-card" style={{marginBottom:'1rem'}}>
                 <p className="ap-edit-title">New student</p>
                 <div className="ap-row2">
                   <div className="ap-field">
@@ -581,14 +573,14 @@ function AdminPanel() {
             )}
 
             {formulario === 'assign' && (
-              <div className="ap-card" style={{marginBottom: '1rem'}}>
+              <div className="ap-card" style={{marginBottom:'1rem'}}>
                 <p className="ap-edit-title">Assign existing student</p>
                 <div className="ap-field">
                   <label className="ap-label">Search student</label>
                   <input className="ap-input" type="text" placeholder="Type a name..." value={estudianteBusqueda} onChange={(e) => setEstudianteBusqueda(e.target.value)} />
                   {estudianteBusqueda.length > 1 && (
                     <div style={{border:'0.5px solid #eee', borderRadius:'8px', marginTop:'4px', overflow:'hidden'}}>
-                      {estudiantes.filter(e => e.nombre.toLowerCase().includes(estudianteBusqueda.toLowerCase())).slice(0, 5).map(e => (
+                      {estudiantes.filter(e => e.nombre.toLowerCase().includes(estudianteBusqueda.toLowerCase())).slice(0,5).map(e => (
                         <div key={e.id} onClick={() => { setEstudianteAsignar(e); setEstudianteBusqueda(e.nombre) }}
                           style={{padding:'8px 12px', cursor:'pointer', fontSize:'13px', color:'#1a1a1a', background: estudianteAsignar?.id === e.id ? '#f0f7e6' : 'white', borderBottom:'0.5px solid #f5f5f5'}}>
                           {e.nombre} {e.comunidad ? `· ${e.comunidad} ${e.nivel}` : '· Sin comunidad'}
@@ -650,7 +642,7 @@ function AdminPanel() {
                           {resetUser?.id === e.id && (
                             <div className="ap-edit-panel">
                               <p className="ap-edit-title">Reset password — {e.nombre}</p>
-                              <div className="ap-pw-box" style={{marginBottom: '10px'}}>
+                              <div className="ap-pw-box" style={{marginBottom:'10px'}}>
                                 <span className="ap-pw-val">{nuevoPassword || '—'}</span>
                                 <button className="ap-pw-copy" onClick={copiarReset}>{copiadoReset ? '✓ Copied!' : '📋 Copy'}</button>
                               </div>
@@ -688,12 +680,14 @@ function AdminPanel() {
                             <div className="ap-vol-info">
                               <p className="ap-vol-name">{e.nombre}</p>
                               <p className="ap-vol-role">Estudiante{e.telefono ? ` · ${e.telefono}` : ''}</p>
+                              {e.email && <p style={{fontSize:'11px', color:'#aaa', margin:0}}>{e.email}</p>}
                             </div>
                             <div className="ap-vol-btns">
                               <button className="ap-btn-edit" onClick={() => { setEditandoEst(e.id); setNombreEstEditando(e.nombre); setTelefonoEstEditando(e.telefono || ''); setMoviendo(null); setResetUser(null) }}>✏️ Edit</button>
                               <button className="ap-btn-edit" onClick={() => { setMoviendo(e.id); setComunidadDestino(''); setResetUser(null) }}>Move</button>
                               <button className="ap-btn-reset" onClick={() => { setResetUser(e); setNuevoPassword(generarPassword()); setMoviendo(null) }}>🔑 Reset</button>
                               <button className="ap-btn-deact" onClick={() => marcarEstudianteInactivo(e.id)}>Inactive</button>
+                              {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarEstudiantePermanente(e.id)}>Delete</button>}
                             </div>
                           </div>
                         </div>
@@ -714,7 +708,7 @@ function AdminPanel() {
               <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'1rem'}}>No inactive volunteers.</p>
             )}
             {inactivos.filter(u => !u.roles_anteriores?.includes('estudiante')).map(u => (
-              <div key={u.id} className="ap-vol-row" style={{opacity: 0.6}}>
+              <div key={u.id} className="ap-vol-row" style={{opacity:0.6}}>
                 <div className="ap-avatar" style={{background:'#f0f0f0', color:'#aaa'}}>{u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}</div>
                 <div className="ap-vol-info">
                   <p className="ap-vol-name">{u.nombre}</p>
@@ -731,7 +725,7 @@ function AdminPanel() {
               <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'1rem'}}>No inactive students.</p>
             )}
             {inactivos.filter(u => u.roles_anteriores?.includes('estudiante')).map(u => (
-              <div key={u.id} className="ap-vol-row" style={{opacity: 0.6}}>
+              <div key={u.id} className="ap-vol-row" style={{opacity:0.6}}>
                 <div className="ap-avatar" style={{background:'#f0f0f0', color:'#aaa'}}>{u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}</div>
                 <div className="ap-vol-info">
                   <p className="ap-vol-name">{u.nombre}</p>
@@ -745,7 +739,6 @@ function AdminPanel() {
             ))}
           </div>
         )}
-
       </div>
     </div>
   )

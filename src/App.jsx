@@ -18,6 +18,13 @@ import ClassObservations from './pages/ClassObservations.jsx'
 import ContentHub from './pages/ContentHub.jsx'
 import Outreach from './pages/Outreach.jsx'
 import MyProjects from './pages/MyProjects.jsx'
+import MyClass from './pages/MyClass.jsx'
+import MisTareas from './pages/MisTareas.jsx'
+import MisFaltas from './pages/MisFaltas.jsx'
+import MisCalificaciones from './pages/MisCalificaciones.jsx'
+import MiHorario from './pages/MiHorario.jsx'
+import MiLibro from './pages/MiLibro.jsx'
+import MySchedule from './pages/MySchedule.jsx'
 
 function App() {
   return (
@@ -25,108 +32,29 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/voluntarios"
-          element={
-            <RutaProtegida>
-              <PaginaVoluntarios />
-            </RutaProtegida>
-          }>
-        </Route>
-      <Route
-          path="/dashboard"
-          element={
-            <RutaProtegida>
-              <Dashboard />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route
-          path="/mis-horas"
-          element={
-            <RutaProtegida>
-              <MisHoras />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/checklist" element={
-            <RutaProtegida>
-              <Checklist />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/announcements" element={
-            <RutaProtegida>
-              <Announcements />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/manage-hours" element={
-            <RutaProtegida>
-              <ManageHours />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/admin" element={
-            <RutaProtegida>
-              <AdminPanel />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/week-off" element={
-            <RutaProtegida>
-              <WeekOff />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/certificates" element={
-            <RutaProtegida>
-              <Certificates />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/weekly-report" element={
-            <RutaProtegida>
-              <WeeklyReport />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/admin-reports" element={
-            <RutaProtegida>
-              <AdminReports />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/estudiantes" element={
-            <RutaProtegida>
-              <EstudianteDashboard />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/class-observations" element={
-            <RutaProtegida>
-              <ClassObservations />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/content-hub" element={
-            <RutaProtegida>
-              <ContentHub />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/outreach" element={
-            <RutaProtegida>
-              <Outreach />
-            </RutaProtegida>
-          }>
-        </Route>
-        <Route path="/my-projects" element={
-            <RutaProtegida>
-              <MyProjects />
-            </RutaProtegida>
-          }>
-        </Route>
+        <Route path="/voluntarios" element={<RutaProtegida><PaginaVoluntarios /></RutaProtegida>} />
+        <Route path="/dashboard" element={<RutaProtegida><Dashboard /></RutaProtegida>} />
+        <Route path="/mis-horas" element={<RutaProtegida><MisHoras /></RutaProtegida>} />
+        <Route path="/checklist" element={<RutaProtegida><Checklist /></RutaProtegida>} />
+        <Route path="/announcements" element={<RutaProtegida><Announcements /></RutaProtegida>} />
+        <Route path="/manage-hours" element={<RutaProtegida><ManageHours /></RutaProtegida>} />
+        <Route path="/admin" element={<RutaProtegida><AdminPanel /></RutaProtegida>} />
+        <Route path="/week-off" element={<RutaProtegida><WeekOff /></RutaProtegida>} />
+        <Route path="/certificates" element={<RutaProtegida><Certificates /></RutaProtegida>} />
+        <Route path="/weekly-report" element={<RutaProtegida><WeeklyReport /></RutaProtegida>} />
+        <Route path="/admin-reports" element={<RutaProtegida><AdminReports /></RutaProtegida>} />
+        <Route path="/estudiantes" element={<RutaProtegida><EstudianteDashboard /></RutaProtegida>} />
+        <Route path="/class-observations" element={<RutaProtegida><ClassObservations /></RutaProtegida>} />
+        <Route path="/content-hub" element={<RutaProtegida><ContentHub /></RutaProtegida>} />
+        <Route path="/outreach" element={<RutaProtegida><Outreach /></RutaProtegida>} />
+        <Route path="/my-projects" element={<RutaProtegida><MyProjects /></RutaProtegida>} />
+        <Route path="/my-class" element={<RutaProtegida><MyClass /></RutaProtegida>} />
+        <Route path="/mis-tareas-clase" element={<RutaProtegida><MisTareas /></RutaProtegida>} />
+        <Route path="/mis-faltas" element={<RutaProtegida><MisFaltas /></RutaProtegida>} />
+        <Route path="/mis-calificaciones" element={<RutaProtegida><MisCalificaciones /></RutaProtegida>} />
+        <Route path="/mi-horario" element={<RutaProtegida><MiHorario /></RutaProtegida>} />
+        <Route path="/mi-libro" element={<RutaProtegida><MiLibro /></RutaProtegida>} />
+        <Route path="/my-schedule" element={<RutaProtegida><MySchedule /></RutaProtegida>} />
       </Routes>
     </BrowserRouter>
   )

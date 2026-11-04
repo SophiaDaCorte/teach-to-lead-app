@@ -20,44 +20,22 @@ function Dashboard() {
     async function cargarDatos() {
       const { data: session } = await supabase.auth.getSession()
       if (session.session) {
-        const { data } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', session.session.user.id)
-          .single()
+        const { data } = await supabase.from('perfiles').select('*').eq('id', session.session.user.id).single()
         setPerfil(data)
 
-        const { data: horasData } = await supabase
-          .from('horas')
-          .select('*')
-          .eq('user_id', session.session.user.id)
-          .single()
+        const { data: horasData } = await supabase.from('horas').select('*').eq('user_id', session.session.user.id).single()
         setHoras(horasData)
 
-        const { data: anunciosData } = await supabase
-          .from('announcements')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(2)
+        const { data: anunciosData } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(2)
         setAnuncios(anunciosData || [])
 
-        const { count: certs } = await supabase
-          .from('solicitudes_certificado')
-          .select('*', { count: 'exact', head: true })
-          .eq('estado', 'pendiente')
+        const { count: certs } = await supabase.from('solicitudes_certificado').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
         setCertCount(certs || 0)
 
-        const { count: weekOffs } = await supabase
-          .from('solicitudes_week_off')
-          .select('*', { count: 'exact', head: true })
-          .eq('estado', 'pendiente')
+        const { count: weekOffs } = await supabase.from('solicitudes_week_off').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
         setWeekOffCount(weekOffs || 0)
 
-        const { count: vols } = await supabase
-          .from('perfiles')
-          .select('*', { count: 'exact', head: true })
-          .not('roles', 'cs', '{"estudiante"}')
-          .not('roles', 'cs', '{"inactivo"}')
+        const { count: vols } = await supabase.from('perfiles').select('*', { count: 'exact', head: true }).not('roles', 'cs', '{"estudiante"}').not('roles', 'cs', '{"inactivo"}')
         setVoluntariosCount(vols || 0)
 
         const hoy = new Date()
@@ -68,12 +46,7 @@ function Dashboard() {
         inicioSemana.setHours(0, 0, 0, 0)
         const isoSemana = inicioSemana.toISOString().split('T')[0]
 
-        const { data: reporte } = await supabase
-          .from('weekly_reports')
-          .select('id')
-          .eq('user_id', session.session.user.id)
-          .eq('semana_inicio', isoSemana)
-          .maybeSingle()
+        const { data: reporte } = await supabase.from('weekly_reports').select('id').eq('user_id', session.session.user.id).eq('semana_inicio', isoSemana).maybeSingle()
         setReportePendiente(!reporte)
       }
     }
@@ -107,7 +80,6 @@ function Dashboard() {
       <div className="doodle-layer">
         {doodles.map((d, i) => <Doodle key={i} {...d} />)}
       </div>
-
       <div className="dash-content">
         <div className="dash-topbar">
           <div>
@@ -115,40 +87,22 @@ function Dashboard() {
             <p className="dash-role">{mostrarRol(perfil.roles[0])} · {perfil.titulo} · Teach to Lead</p>
           </div>
           <div className="dash-top-right">
-            <button className="dash-icon-btn" aria-label="Notifications">
-              <i className="ti ti-bell" aria-hidden="true"></i>
-            </button>
-            <button className="dash-icon-btn" aria-label="Messages">
-              <i className="ti ti-message-circle" aria-hidden="true"></i>
-            </button>
-            <button className="dash-signout" onClick={cerrarSesion}>
-              <i className="ti ti-logout" aria-hidden="true"></i> Sign out
-            </button>
+            <button className="dash-icon-btn" aria-label="Notifications"><i className="ti ti-bell" aria-hidden="true"></i></button>
+            <button className="dash-icon-btn" aria-label="Messages"><i className="ti ti-message-circle" aria-hidden="true"></i></button>
+            <button className="dash-signout" onClick={cerrarSesion}><i className="ti ti-logout" aria-hidden="true"></i> Sign out</button>
           </div>
         </div>
 
         <div className="dash-metrics">
           {roles.includes('staff_admin') && (
-            <div className="metric">
-              <div className="metric-n">{voluntariosCount}</div>
-              <div className="metric-l">Total volunteers</div>
-            </div>
+            <div className="metric"><div className="metric-n">{voluntariosCount}</div><div className="metric-l">Total volunteers</div></div>
           )}
-          <div className="metric">
-            <div className="metric-n">{horas ? horas.total_hrs : 0}</div>
-            <div className="metric-l">My hours</div>
-          </div>
+          <div className="metric"><div className="metric-n">{horas ? horas.total_hrs : 0}</div><div className="metric-l">My hours</div></div>
           {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
-            <div className="metric">
-              <div className="metric-n">{certCount}</div>
-              <div className="metric-l">Cert. requests</div>
-            </div>
+            <div className="metric"><div className="metric-n">{certCount}</div><div className="metric-l">Cert. requests</div></div>
           )}
           {roles.includes('staff_admin') && (
-            <div className="metric">
-              <div className="metric-n">{weekOffCount}</div>
-              <div className="metric-l">Week off requests</div>
-            </div>
+            <div className="metric"><div className="metric-n">{weekOffCount}</div><div className="metric-l">Week off requests</div></div>
           )}
         </div>
 
@@ -156,7 +110,7 @@ function Dashboard() {
         <div className="dash-modules">
 
           {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('director_of_schools') || roles.includes('staff_marketing')) && (
-            <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/admin')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">👑</span></div>
               <div className="dash-mod-title">Admin panel</div>
               <div className="dash-mod-desc">Manage users and roles</div>
@@ -164,7 +118,7 @@ function Dashboard() {
           )}
 
           {roles.includes('director_of_schools') && (
-            <div className="dash-mod" onClick={() => navigate('/class-observations')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/class-observations')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">📋</span></div>
               <div className="dash-mod-title">Class observations</div>
               <div className="dash-mod-desc">Report and view class visits</div>
@@ -172,7 +126,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_admin') || roles.includes('director_of_programs')) && (
-            <div className="dash-mod" onClick={() => navigate('/certificates')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/certificates')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📜</span>
                 {certCount > 0 && <span className="dash-badge badge-warn">{certCount} new</span>}
@@ -183,7 +137,7 @@ function Dashboard() {
           )}
 
           {roles.includes('staff_admin') && (
-            <div className="dash-mod" onClick={() => navigate('/admin-reports')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/admin-reports')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">📊</span></div>
               <div className="dash-mod-title">Staff reports</div>
               <div className="dash-mod-desc">Weekly reports and observations</div>
@@ -191,7 +145,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_admin') || roles.includes('staff_marketing')) && (
-            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/manage-hours')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">⏱️</span></div>
               <div className="dash-mod-title">Manage hours</div>
               <div className="dash-mod-desc">Edit volunteer hours</div>
@@ -199,7 +153,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_admin') || roles.includes('staff_marketing') || roles.includes('marketing_interns')) && (
-            <div className="dash-mod" onClick={() => navigate('/content-hub')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/content-hub')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🎬</span></div>
               <div className="dash-mod-title">Content hub</div>
               <div className="dash-mod-desc">Assign and upload content</div>
@@ -207,7 +161,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_admin') || roles.includes('staff_marketing') || roles.includes('marketing_interns')) && (
-            <div className="dash-mod" onClick={() => navigate('/outreach')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/outreach')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">📣</span></div>
               <div className="dash-mod-title">Outreach</div>
               <div className="dash-mod-desc">
@@ -217,7 +171,7 @@ function Dashboard() {
           )}
 
           {(roles.includes('staff_admin') || roles.includes('volunteer_coordinator') || roles.includes('creation')) && (
-            <div className="dash-mod" onClick={() => navigate('/my-projects')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/my-projects')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🗂️</span></div>
               <div className="dash-mod-title">My projects</div>
               <div className="dash-mod-desc">
@@ -227,31 +181,23 @@ function Dashboard() {
           )}
 
           {roles.includes('tutors') && (
-            <div className="dash-mod">
+            <div className="dash-mod" onClick={() => navigate('/my-class')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🎓</span></div>
               <div className="dash-mod-title">My class</div>
-              <div className="dash-mod-desc">Students, attendance and grades</div>
+              <div className="dash-mod-desc">Attendance and gradebook</div>
             </div>
           )}
 
           {roles.includes('tutors') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top"><span className="dash-mod-emoji">📖</span></div>
-              <div className="dash-mod-title">Student book</div>
-              <div className="dash-mod-desc">View and share course book</div>
-            </div>
-          )}
-
-          {roles.includes('tutors') && (
-            <div className="dash-mod">
-              <div className="dash-mod-top"><span className="dash-mod-emoji">📸</span></div>
-              <div className="dash-mod-title">Class photos</div>
-              <div className="dash-mod-desc">Upload weekly class photos</div>
+            <div className="dash-mod" onClick={() => navigate('/my-schedule')} style={{cursor:'pointer'}}>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">🗓️</span></div>
+              <div className="dash-mod-title">My schedule</div>
+              <div className="dash-mod-desc">Manage class times and links</div>
             </div>
           )}
 
           {!roles.includes('staff_admin') && (
-            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🏖️</span></div>
               <div className="dash-mod-title">Week off</div>
               <div className="dash-mod-desc">Request a week off</div>
@@ -259,7 +205,7 @@ function Dashboard() {
           )}
 
           {roles.includes('staff_admin') && (
-            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/week-off')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">🏖️</span>
                 {weekOffCount > 0 && <span className="dash-badge badge-warn">{weekOffCount} new</span>}
@@ -270,7 +216,7 @@ function Dashboard() {
           )}
 
           {!roles.includes('creation') && (
-            <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor: 'pointer'}}>
+            <div className="dash-mod" onClick={() => navigate('/weekly-report')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top">
                 <span className="dash-mod-emoji">📝</span>
                 {reportePendiente && <span className="dash-badge badge-new">Pending</span>}
@@ -280,13 +226,13 @@ function Dashboard() {
             </div>
           )}
 
-          <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor: 'pointer'}}>
+          <div className="dash-mod" onClick={() => navigate('/mis-horas')} style={{cursor:'pointer'}}>
             <div className="dash-mod-top"><span className="dash-mod-emoji">⏰</span></div>
             <div className="dash-mod-title">My hours</div>
             <div className="dash-mod-desc">View and request cert</div>
           </div>
 
-          <div className="dash-mod" onClick={() => navigate('/announcements')} style={{cursor: 'pointer'}}>
+          <div className="dash-mod" onClick={() => navigate('/announcements')} style={{cursor:'pointer'}}>
             <div className="dash-mod-top"><span className="dash-mod-emoji">📢</span></div>
             <div className="dash-mod-title">Announcements</div>
             <div className="dash-mod-desc">Post to any team</div>
@@ -298,7 +244,7 @@ function Dashboard() {
             <div className="dash-mod-desc">All teams' files</div>
           </div>
 
-          <div className="dash-mod" onClick={() => navigate('/checklist')} style={{cursor: 'pointer'}}>
+          <div className="dash-mod" onClick={() => navigate('/checklist')} style={{cursor:'pointer'}}>
             <div className="dash-mod-top"><span className="dash-mod-emoji">✅</span></div>
             <div className="dash-mod-title">Checklists</div>
             <div className="dash-mod-desc">My weekly tasks</div>
@@ -314,22 +260,15 @@ function Dashboard() {
 
         <p className="dash-sl">Latest announcements</p>
         <div className="dash-card">
-          {anuncios.length === 0 && (
-            <p style={{fontSize: '13px', color: '#aaa', textAlign: 'center', padding: '1rem 0'}}>No announcements yet.</p>
-          )}
+          {anuncios.length === 0 && <p style={{fontSize:'13px', color:'#aaa', textAlign:'center', padding:'1rem 0'}}>No announcements yet.</p>}
           {anuncios.map((a) => (
             <div key={a.id} className="dash-ann-row">
               <div className="dash-ann-title">{a.titulo}</div>
-              <div className="dash-ann-meta">
-                {new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </div>
+              <div className="dash-ann-meta">{new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
             </div>
           ))}
-          <button className="dash-lime-btn" onClick={() => navigate('/announcements')}>
-            View all announcements
-          </button>
+          <button className="dash-lime-btn" onClick={() => navigate('/announcements')}>View all announcements</button>
         </div>
-
       </div>
     </div>
   )

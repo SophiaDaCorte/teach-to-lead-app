@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+.sp-content {
+  position: relative;
+  z-index: 1;
+  font-family: 'Poppins', sans-serif;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.sp-back {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2d2a86;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 0;
+  display: block;
+}
+
+.sp-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0 0 1.5rem;
+}
+
+.sp-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.sp-stat {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.sp-stat-n { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+.sp-stat-l { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.sp-card {
+  background: white;
+  border: 0.5px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.sp-card-header:hover { background: #f9f9f9; }
+
+.sp-card-info { flex: 1; }
+.sp-card-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.sp-card-sub { font-size: 11px; color: #aaa; margin: 0; }
+
+.sp-card-body {
+  border-top: 0.5px solid #eee;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sp-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.badge-missing { background: #fef2f2; color: #b91c1c; }
+.badge-submitted { background: #fffbeb; color: #92400e; }
+.badge-graded { background: #f0fdf4; color: #15803d; }
+
+.sp-field-label {
+  font-size: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 3px;
+}
+
+.sp-save {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  width: fit-content;
+}
+
+.sp-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sp-cancel {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 0.5px solid #eee;
+  background: none;
+  font-size: 13px;
+  color: #aaa;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}

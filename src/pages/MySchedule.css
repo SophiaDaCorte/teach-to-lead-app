@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+.ms-content { position: relative; z-index: 1; font-family: 'Poppins', sans-serif; max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.ms-back { background: none; border: none; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.95rem; color: #2d2a86; cursor: pointer; margin-bottom: 1.5rem; padding: 0; display: block; }
+.ms-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.ms-title { font-size: 28px; font-weight: 900; color: #1a1a1a; margin: 0; }
+.ms-new-btn { padding: 8px 18px; border-radius: 999px; border: none; background: #a9cb5a; color: #1a1a1a; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.ms-new-btn.active { background: #eee; color: #888; }
+.ms-form { background: white; border: 0.5px solid #eee; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.ms-form-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px; }
+.ms-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.ms-field { margin-bottom: 10px; }
+.ms-label { font-size: 11px; color: #555; display: block; margin-bottom: 4px; font-weight: 500; }
+.ms-input { width: 100%; padding: 8px 12px; border: 0.5px solid #eee; border-radius: 8px; font-size: 13px; font-family: 'Poppins', sans-serif; outline: none; box-sizing: border-box; color: #1a1a1a; background: white; color-scheme: light; }
+.ms-input:focus { border-color: #2d2a86; }
+.ms-form-btns { display: flex; gap: 8px; margin-top: 12px; }
+.ms-save { padding: 8px 18px; border-radius: 999px; border: none; background: #a9cb5a; color: #1a1a1a; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.ms-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.ms-cancel { padding: 8px 14px; border-radius: 999px; border: 0.5px solid #eee; background: none; font-size: 13px; color: #aaa; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.ms-card { background: white; border: 0.5px solid #eee; border-radius: 12px; overflow: hidden; }

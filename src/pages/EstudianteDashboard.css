@@ -20,27 +20,36 @@
   font-size: 28px;
   font-weight: 900;
   color: #1a1a1a;
-  margin-bottom: 0.25rem;
+  margin: 0 0 4px;
+  text-align: left;
+}
+
+.est-role {
+  font-size: 13px;
+  color: #aaa;
+  margin: 0;
+  text-align: left;
 }
 
 .est-sub {
-  font-size: 0.95rem;
+  font-size: 13px;
   color: #aaa;
   margin: 0;
 }
 
 .est-signout {
-  font-size: 12px;
+  font-size: 18px;
   color: #888;
   border: 0.5px solid #eee;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 7px 12px;
   background: white;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
+  flex-shrink: 0;
 }
 
-.est-clase-banner {
+.est-class-banner {
   background: #f0f7e6;
   border: 0.5px solid #c0dd97;
   border-radius: 12px;
@@ -48,34 +57,25 @@
   margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
 }
 
-.est-clase-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #3B6D11;
-  flex-shrink: 0;
-}
-
-.est-clase-info { flex: 1; }
-
-.est-clase-titulo {
+.est-banner-title {
   font-size: 13px;
   font-weight: 600;
   color: #3B6D11;
-  margin: 0;
+  margin: 0 0 2px;
 }
 
-.est-clase-detalle {
+.est-banner-sub {
   font-size: 11px;
   color: #3B6D11;
-  margin: 2px 0 0;
+  margin: 0;
   opacity: 0.75;
 }
 
-.est-clase-btn {
+.est-join-btn {
   padding: 7px 16px;
   border-radius: 999px;
   border: none;
@@ -89,7 +89,7 @@
   white-space: nowrap;
 }
 
-.est-falta-alert {
+.est-alert {
   background: #fffbeb;
   border: 0.5px solid #fde68a;
   border-radius: 12px;
@@ -97,50 +97,23 @@
   margin-bottom: 1.25rem;
 }
 
-.est-falta-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.est-falta-title {
+.est-alert-title {
   font-size: 13px;
   font-weight: 600;
   color: #92400e;
-  margin: 0;
+  margin: 0 0 4px;
 }
 
-.est-falta-badge {
-  font-size: 10px;
-  font-weight: 600;
-  background: #92400e;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
+.est-alert-sub {
+  font-size: 11px;
+  color: #92400e;
+  margin: 0 0 8px;
+  opacity: 0.8;
 }
 
-.est-falta-row {
-  background: white;
-  border-radius: 8px;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 0.5px solid #eee;
-}
-
-.est-falta-fecha {
-  font-size: 12px;
-  font-weight: 600;
-  color: #1a1a1a;
-  flex-shrink: 0;
-}
-
-.est-falta-input {
+.est-excuse-input {
   flex: 1;
-  border: 0.5px solid #eee;
+  border: 0.5px solid #fde68a;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 12px;
@@ -151,7 +124,7 @@
   color-scheme: light;
 }
 
-.est-falta-send {
+.est-excuse-btn {
   padding: 6px 14px;
   border-radius: 999px;
   border: none;
@@ -164,11 +137,7 @@
   white-space: nowrap;
 }
 
-.est-falta-timer {
-  font-size: 11px;
-  color: #92400e;
-  margin: 8px 0 0;
-}
+.est-excuse-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .est-metrics {
   display: grid;
@@ -213,13 +182,17 @@
 
 .est-mod {
   background: white;
-  border: 0.5px solid #eee;
+  border: 0.5px solid #e5e5e5;
   border-radius: 12px;
   padding: 1rem;
   cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: border-color 0.15s;
 }
 
-.est-mod:hover { border-color: #ccc; }
+.est-mod:hover {
+  border-color: #a9cb5a;
+}
 
 .est-mod-top {
   display: flex;
@@ -229,17 +202,29 @@
 }
 
 .est-mod-emoji { font-size: 24px; }
-.est-mod-title { font-size: 13px; font-weight: 500; color: #1a1a1a; margin-bottom: 3px; }
-.est-mod-desc { font-size: 11px; color: #aaa; line-height: 1.4; }
+
+.est-mod-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 3px;
+}
+
+.est-mod-desc {
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.4;
+  margin: 0;
+}
 
 .est-badge {
   font-size: 10px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
+  background: #FCEBEB;
+  color: #A32D2D;
 }
-
-.badge-warn { background: #fffbeb; color: #92400e; border: 0.5px solid #fde68a; }
 
 .est-card {
   background: white;

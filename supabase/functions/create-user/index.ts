@@ -6,55 +6,73 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function respuesta(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
 
-    const { nombre, titulo, roles, email, password, comunidad, nivel } = await req.json()
+  let userIdCreado: string | null = null
+
+  try {
+    const { nombre, titulo, roles, email, password, comunidad, nivel, telefono } = await req.json()
+    const emailLimpio = String(email || '').trim().toLowerCase()
+    const listaRoles = roles && roles.length > 0 ? roles : ['estudiante']
+    const esEstudiante = listaRoles.includes('estudiante')
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: emailLimpio,
       password,
-      email_confirm: true
+      email_confirm: true,
     })
-
     if (authError) throw authError
 
-    const userId = authData.user.id
+    userIdCreado = authData.user.id
 
-    await supabaseAdmin.from('perfiles').insert({
-      id: userId,
-      nombre,
-      titulo: titulo || 'Estudiante',
-      roles: roles || ['estudiante'],
-      comunidad: comunidad || null,
-      nivel: nivel || null
-    })
+    const { error: perfilError } = await supabaseAdmin.from('perfiles').upsert(
+      {
+        id: userIdCreado,
+        nombre,
+        email: emailLimpio,
+        titulo: titulo || 'Estudiante',
+        roles: listaRoles,
+        comunidad: comunidad || null,
+        nivel: nivel || null,
+        telefono: telefono || null,
+      },
+      { onConflict: 'id' }
+    )
+    if (perfilError) throw perfilError
 
-    if (!roles?.includes('estudiante')) {
-      await supabaseAdmin.from('horas').insert({
-        user_id: userId,
+    if (!esEstudiante) {
+      const { error: horasError } = await supabaseAdmin.from('horas').insert({
+        user_id: userIdCreado,
         content_hrs: 0,
-        meeting_hrs: 0
+        meeting_hrs: 0,
       })
+      if (horasError) throw horasError
     }
 
-    return new Response(
-      JSON.stringify({ success: true, userId }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
+    return respuesta({ success: true, userId: userIdCreado })
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    )
+    // Rollback: si algo falló, no dejar el usuario huérfano en Authentication
+    if (userIdCreado) {
+      await supabaseAdmin.from('horas').delete().eq('user_id', userIdCreado)
+      await supabaseAdmin.from('perfiles').delete().eq('id', userIdCreado)
+      await supabaseAdmin.auth.admin.deleteUser(userIdCreado)
+    }
+    const mensaje = (error as { message?: string })?.message || 'Unknown error'
+    return respuesta({ error: mensaje }, 400)
   }
 })

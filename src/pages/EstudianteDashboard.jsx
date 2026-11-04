@@ -9,89 +9,93 @@ function EstudianteDashboard() {
   const navigate = useNavigate()
   const doodles = useDoodles()
   const [perfil, setPerfil] = useState(null)
-  const [userId, setUserId] = useState(null)
   const [claseHoy, setClaseHoy] = useState(null)
-  const [faltasSinExcusar, setFaltasSinExcusar] = useState([])
+  const [faltasNoExcusadas, setFaltasNoExcusadas] = useState(0)
   const [anuncios, setAnuncios] = useState([])
-  const [razonesExcusa, setRazonesExcusa] = useState({})
-
-  const DIAS = {
-    0: 'domingo', 1: 'lunes', 2: 'martes', 3: 'miércoles',
-    4: 'jueves', 5: 'viernes', 6: 'sábado'
-  }
+  const [tareasPendientes, setTareasPendientes] = useState(0)
+  const [promedio, setPromedio] = useState(100)
+  const [asistenciaPct, setAsistenciaPct] = useState(100)
+  const [excusaInput, setExcusaInput] = useState('')
+  const [enviandoExcusa, setEnviandoExcusa] = useState(false)
+  const [excusaEnviada, setExcusaEnviada] = useState(false)
+  const [timerExcusa, setTimerExcusa] = useState(300)
 
   useEffect(() => {
     async function cargarDatos() {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session) return
-      setUserId(session.session.user.id)
+      const uid = session.session.user.id
 
       const { data: perfilData } = await supabase
-        .from('perfiles')
-        .select('*')
-        .eq('id', session.session.user.id)
-        .single()
+        .from('perfiles').select('*').eq('id', uid).single()
       setPerfil(perfilData)
 
       if (perfilData?.comunidad) {
-        const hoy = DIAS[new Date().getDay()]
-        const { data: claseData } = await supabase
-          .from('clases')
-          .select('*, tutor:tutor_id(nombre)')
-          .eq('comunidad', perfilData.comunidad)
-          .eq('dia_semana', hoy)
-          .single()
-        setClaseHoy(claseData || null)
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+        const hoy = diasSemana[new Date().getDay()]
+        const { data: clases } = await supabase
+          .from('clases').select('*')
+          .eq('comunidad', perfilData.comunidad).eq('dia_semana', hoy)
+        if (clases && clases.length > 0) setClaseHoy(clases[0])
       }
 
-      const { data: faltas } = await supabase
-        .from('asistencia')
-        .select('*')
-        .eq('estudiante_id', session.session.user.id)
-        .eq('presente', false)
-        .eq('excusada', false)
-      setFaltasSinExcusar(faltas || [])
+      const { data: asist } = await supabase
+        .from('asistencia').select('*').eq('estudiante_id', uid)
+      const total = (asist || []).length
+      const presentes = (asist || []).filter(a => a.presente).length
+      setFaltasNoExcusadas((asist || []).filter(a => !a.presente && !a.excusada).length)
+      setAsistenciaPct(total > 0 ? Math.round((presentes / total) * 100) : 100)
 
       const { data: anunciosData } = await supabase
-        .from('announcements')
-        .select('*')
-        .overlaps('dirigido_a', ['all', 'estudiantes'])
-        .order('created_at', { ascending: false })
-        .limit(3)
+        .from('announcements').select('*')
+        .order('created_at', { ascending: false }).limit(2)
       setAnuncios(anunciosData || [])
+
+      const { data: notasData } = await supabase
+        .from('gradebook_notas').select('*').eq('estudiante_id', uid)
+
+      const colIds = [...new Set((notasData || []).map(n => n.columna_id))]
+      if (colIds.length > 0) {
+        const { data: colsData } = await supabase
+          .from('gradebook_columnas').select('*').in('id', colIds)
+        const tareaColIds = (colsData || []).filter(c => c.tipo === 'tarea').map(c => c.id)
+        setTareasPendientes((notasData || []).filter(n => n.estado === 'missing' && tareaColIds.includes(n.columna_id)).length)
+
+        const calificadas = (notasData || []).filter(n => n.estado === 'calificado')
+        if (calificadas.length > 0) {
+          const prom = Math.round(calificadas.reduce((sum, n) => {
+            const col = (colsData || []).find(c => c.id === n.columna_id)
+            return sum + (col ? (n.nota / col.max_score) * 100 : 0)
+          }, 0) / calificadas.length)
+          setPromedio(prom)
+        }
+      }
     }
     cargarDatos()
   }, [])
 
-  async function enviarExcusa(faltaId) {
-    const razon = razonesExcusa[faltaId]
-    if (!razon?.trim()) return
-    await supabase
-      .from('asistencia')
-      .update({ excusada: true, razon_excusa: razon })
-      .eq('id', faltaId)
-    setFaltasSinExcusar(faltasSinExcusar.filter(f => f.id !== faltaId))
-  }
+  useEffect(() => {
+    if (faltasNoExcusadas === 0) return
+    const interval = setInterval(() => {
+      setTimerExcusa(prev => { if (prev <= 1) { clearInterval(interval); return 0 } return prev - 1 })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [faltasNoExcusadas])
 
-  function diasRestantes(fecha) {
-    const limite = new Date(fecha)
-    limite.setDate(limite.getDate() + 3)
-    const hoy = new Date()
-    const diff = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24))
-    return diff > 0 ? diff : 0
-  }
-
-  function formatFecha(fecha) {
-    return new Date(fecha + 'T12:00:00').toLocaleDateString('es-HN', {
-      weekday: 'short', day: 'numeric', month: 'short'
-    })
-  }
-
-  function formatAnuncio(fecha) {
-    const diff = Math.floor((new Date() - new Date(fecha)) / (1000 * 60 * 60 * 24))
-    if (diff === 0) return 'Hoy'
-    if (diff === 1) return 'Hace 1 día'
-    return `Hace ${diff} días`
+  async function enviarExcusa() {
+    if (!excusaInput.trim()) return
+    setEnviandoExcusa(true)
+    const { data: session } = await supabase.auth.getSession()
+    const uid = session.session.user.id
+    const { data: faltas } = await supabase.from('asistencia').select('*')
+      .eq('estudiante_id', uid).eq('presente', false).eq('excusada', false)
+      .order('clase_fecha', { ascending: false }).limit(1)
+    if (faltas && faltas.length > 0) {
+      await supabase.from('asistencia').update({ excusada: true, razon_excusa: excusaInput }).eq('id', faltas[0].id)
+      setFaltasNoExcusadas(0)
+      setExcusaEnviada(true)
+    }
+    setEnviandoExcusa(false)
   }
 
   async function cerrarSesion() {
@@ -99,149 +103,126 @@ function EstudianteDashboard() {
     navigate('/')
   }
 
-  if (!perfil) return <p style={{fontFamily:'Poppins,sans-serif', padding:'2rem', color:'#aaa'}}>Cargando...</p>
+  if (!perfil) return <p>Cargando...</p>
 
-  const comunidadLabel = perfil.comunidad && perfil.nivel
-    ? `${perfil.comunidad} ${perfil.nivel}`
-    : perfil.comunidad || null
+  const minutos = Math.floor(timerExcusa / 60)
+  const segundos = timerExcusa % 60
 
   return (
     <div className="page-wrapper">
       <div className="doodle-layer">
         {doodles.map((d, i) => <Doodle key={i} {...d} />)}
       </div>
-
       <div className="est-content">
         <div className="est-topbar">
           <div>
-            <h1 className="est-name">Hola, {perfil.nombre} 👋</h1>
-            <p className="est-sub">
-              Estudiante{comunidadLabel ? ` · ${comunidadLabel}` : ''} · Teach to Lead
-            </p>
+            <h1 className="est-name">¡Hola, {perfil.nombre}! 👋</h1>
+            <p className="est-role">Estudiante · {perfil.comunidad} {perfil.nivel} · Teach to Lead</p>
           </div>
-          <button className="est-signout" onClick={cerrarSesion}>Cerrar sesión</button>
+          <button className="est-signout" onClick={cerrarSesion}>
+            <i className="ti ti-logout" aria-hidden="true"></i>
+          </button>
         </div>
 
         {claseHoy && (
-          <div className="est-clase-banner">
-            <div className="est-clase-dot"></div>
-            <div className="est-clase-info">
-              <p className="est-clase-titulo">Clase de inglés — hoy {claseHoy.hora_inicio} – {claseHoy.hora_fin}</p>
-              <p className="est-clase-detalle">con {claseHoy.tutor?.nombre || 'tu profesora'}{comunidadLabel ? ` · ${comunidadLabel}` : ''}</p>
+          <div className="est-class-banner">
+            <div>
+              <p className="est-banner-title">📚 ¡Tienes clase hoy!</p>
+              <p className="est-banner-sub">{claseHoy.hora_inicio} — {claseHoy.hora_fin}</p>
             </div>
             {claseHoy.link_clase && (
-              <a href={claseHoy.link_clase} target="_blank" rel="noreferrer" className="est-clase-btn">
-                Unirse
+              <a href={claseHoy.link_clase} target="_blank" rel="noreferrer" className="est-join-btn">
+                Entrar a la clase
               </a>
             )}
           </div>
         )}
 
-        {faltasSinExcusar.map(falta => (
-          <div key={falta.id} className="est-falta-alert">
-            <div className="est-falta-header">
-              <p className="est-falta-title">⚠️ Tienes una falta sin excusar</p>
-              <span className="est-falta-badge">{diasRestantes(falta.clase_fecha)} días para excusarla</span>
-            </div>
-            <div className="est-falta-row">
-              <span className="est-falta-fecha">{formatFecha(falta.clase_fecha)}</span>
-              <input
-                className="est-falta-input"
-                type="text"
-                placeholder="Escribe el motivo de tu falta..."
-                value={razonesExcusa[falta.id] || ''}
-                onChange={(e) => setRazonesExcusa({...razonesExcusa, [falta.id]: e.target.value})}
-              />
-              <button className="est-falta-send" onClick={() => enviarExcusa(falta.id)}>Enviar</button>
-            </div>
-            <p className="est-falta-timer">
-              Tienes hasta el {(() => {
-                const d = new Date(falta.clase_fecha)
-                d.setDate(d.getDate() + 3)
-                return d.toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long' })
-              })()} para excusar esta falta.
+        {faltasNoExcusadas > 0 && !excusaEnviada && (
+          <div className="est-alert">
+            <p className="est-alert-title">⚠️ Tienes {faltasNoExcusadas} falta{faltasNoExcusadas > 1 ? 's' : ''} sin excusar</p>
+            <p className="est-alert-sub">
+              {timerExcusa > 0 ? `Tienes ${minutos}:${segundos.toString().padStart(2,'0')} para enviar una excusa` : 'Tiempo expirado'}
             </p>
+            {timerExcusa > 0 && (
+              <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
+                <input className="est-excuse-input" type="text" placeholder="¿Qué pasó?" value={excusaInput} onChange={(e) => setExcusaInput(e.target.value)} />
+                <button className="est-excuse-btn" onClick={enviarExcusa} disabled={enviandoExcusa || !excusaInput.trim()}>Enviar</button>
+              </div>
+            )}
           </div>
-        ))}
+        )}
+
+        {excusaEnviada && (
+          <div style={{background:'#f0f7e6', border:'0.5px solid #c0dd97', borderRadius:'12px', padding:'12px 16px', marginBottom:'1.25rem'}}>
+            <p style={{fontSize:'13px', fontWeight:600, color:'#3B6D11', margin:0}}>✓ Excusa enviada con éxito</p>
+          </div>
+        )}
 
         <div className="est-metrics">
           <div className="est-metric">
-            <div className="est-metric-n" style={{color:'#3B6D11'}}>—</div>
+            <div className="est-metric-n" style={{color: promedio >= 70 ? '#15803d' : '#b91c1c'}}>{promedio}%</div>
             <div className="est-metric-l">Promedio</div>
           </div>
+          {tareasPendientes > 0 && (
+            <div className="est-metric">
+              <div className="est-metric-n" style={{color:'#b91c1c'}}>{tareasPendientes}</div>
+              <div className="est-metric-l">Tareas faltantes</div>
+            </div>
+          )}
           <div className="est-metric">
-            <div className="est-metric-n">—</div>
-            <div className="est-metric-l">Tareas pendientes</div>
-          </div>
-          <div className="est-metric">
-            <div className="est-metric-n" style={{color:'#3B6D11'}}>—</div>
+            <div className="est-metric-n" style={{color: asistenciaPct >= 80 ? '#15803d' : '#b91c1c'}}>{asistenciaPct}%</div>
             <div className="est-metric-l">Asistencia</div>
           </div>
         </div>
 
-        <p className="est-sl">Acceso rápido</p>
+        <p className="est-sl">Mis módulos</p>
         <div className="est-modules">
-          <div className="est-mod">
+          <div className="est-mod" onClick={() => navigate('/mis-tareas-clase')} style={{cursor:'pointer'}}>
             <div className="est-mod-top">
-              <span className="est-mod-emoji">📚</span>
+              <span className="est-mod-emoji">📝</span>
+              {tareasPendientes > 0 && <span className="est-badge">{tareasPendientes}</span>}
             </div>
             <div className="est-mod-title">Mis tareas</div>
-            <div className="est-mod-desc">Ver y entregar tareas</div>
+            <div className="est-mod-desc">Entregar y ver tareas</div>
           </div>
-
-          <div className="est-mod">
-            <div className="est-mod-top">
-              <span className="est-mod-emoji">⭐</span>
-            </div>
+          <div className="est-mod" onClick={() => navigate('/mis-calificaciones')} style={{cursor:'pointer'}}>
+            <div className="est-mod-top"><span className="est-mod-emoji">📊</span></div>
             <div className="est-mod-title">Mis calificaciones</div>
-            <div className="est-mod-desc">Ver notas por materia</div>
+            <div className="est-mod-desc">Ver todas mis notas</div>
           </div>
-
-          <div className="est-mod">
-            <div className="est-mod-top">
-              <span className="est-mod-emoji">📖</span>
-            </div>
+          <div className="est-mod" onClick={() => navigate('/mi-libro')} style={{cursor:'pointer'}}>
+            <div className="est-mod-top"><span className="est-mod-emoji">📖</span></div>
             <div className="est-mod-title">Mi libro</div>
-            <div className="est-mod-desc">Libro de inglés online</div>
+            <div className="est-mod-desc">Descargar mi libro</div>
           </div>
-
-          <div className="est-mod">
-            <div className="est-mod-top">
-              <span className="est-mod-emoji">🗓️</span>
-            </div>
-            <div className="est-mod-title">Horario</div>
-            <div className="est-mod-desc">Ver horario completo</div>
+          <div className="est-mod" onClick={() => navigate('/mi-horario')} style={{cursor:'pointer'}}>
+            <div className="est-mod-top"><span className="est-mod-emoji">🗓️</span></div>
+            <div className="est-mod-title">Mi horario</div>
+            <div className="est-mod-desc">Ver horario de clases</div>
           </div>
-
-          <div className="est-mod">
+          <div className="est-mod" onClick={() => navigate('/mis-faltas')} style={{cursor:'pointer'}}>
             <div className="est-mod-top">
-              <span className="est-mod-emoji">💬</span>
-            </div>
-            <div className="est-mod-title">Chat</div>
-            <div className="est-mod-desc">Hablar con tu comunidad</div>
-          </div>
-
-          <div className="est-mod">
-            <div className="est-mod-top">
-              <span className="est-mod-emoji">📋</span>
-              {faltasSinExcusar.length > 0 && (
-                <span className="est-badge badge-warn">{faltasSinExcusar.length} falta{faltasSinExcusar.length > 1 ? 's' : ''}</span>
-              )}
+              <span className="est-mod-emoji">📅</span>
+              {faltasNoExcusadas > 0 && <span className="est-badge">{faltasNoExcusadas}</span>}
             </div>
             <div className="est-mod-title">Mis faltas</div>
-            <div className="est-mod-desc">Ver y excusar ausencias</div>
+            <div className="est-mod-desc">Ver mi asistencia</div>
+          </div>
+          <div className="est-mod" onClick={() => navigate('/announcements')} style={{cursor:'pointer'}}>
+            <div className="est-mod-top"><span className="est-mod-emoji">📢</span></div>
+            <div className="est-mod-title">Anuncios</div>
+            <div className="est-mod-desc">Noticias de TTL</div>
           </div>
         </div>
 
-        <p className="est-sl">Anuncios de tu profesora</p>
+        <p className="est-sl">Últimos anuncios</p>
         <div className="est-card">
-          {anuncios.length === 0 && (
-            <p style={{fontSize:'13px', color:'#aaa', textAlign:'center', padding:'1rem 0'}}>No hay anuncios todavía.</p>
-          )}
-          {anuncios.map(a => (
+          {anuncios.length === 0 && <p style={{fontSize:'13px', color:'#aaa', textAlign:'center', padding:'1rem 0'}}>No hay anuncios aún.</p>}
+          {anuncios.map((a) => (
             <div key={a.id} className="est-ann-row">
-              <p className="est-ann-title">{a.titulo}</p>
-              <p className="est-ann-meta">{formatAnuncio(a.created_at)}</p>
+              <div className="est-ann-title">{a.titulo}</div>
+              <div className="est-ann-meta">{new Date(a.created_at).toLocaleDateString('es-HN', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
             </div>
           ))}
         </div>
