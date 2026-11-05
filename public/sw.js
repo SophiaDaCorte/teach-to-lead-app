@@ -1,12 +1,7 @@
-const CACHE = 'ttl-v1'
-const PRECACHE = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
+const CACHE = 'ttl-v2'
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE)
-      .then((c) => c.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
-  )
+self.addEventListener('install', () => {
+  self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
@@ -22,29 +17,19 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return
 
   const url = new URL(req.url)
-  // Solo cachea archivos de la propia app. Supabase, fuentes y demás
-  // dominios externos pasan directo, así los datos nunca salen viejos.
+  // Supabase, fuentes y otros dominios pasan directo, sin caché
   if (url.origin !== self.location.origin) return
 
-  // Páginas: siempre intenta la red primero para recibir la versión nueva
-  if (req.mode === 'navigate') {
-    event.respondWith(fetch(req).catch(() => caches.match('/')))
-    return
-  }
-
-  // Archivos estáticos: usa el caché y lo actualiza en segundo plano
+  // Siempre intenta la red primero. El caché solo se usa si no hay internet.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const red = fetch(req)
-        .then((res) => {
-          if (res.ok) {
-            const copia = res.clone()
-            caches.open(CACHE).then((c) => c.put(req, copia))
-          }
-          return res
-        })
-        .catch(() => cached)
-      return cached || red
-    })
+    fetch(req)
+      .then((res) => {
+        if (res.ok) {
+          const copia = res.clone()
+          caches.open(CACHE).then((c) => c.put(req, copia))
+        }
+        return res
+      })
+      .catch(() => caches.match(req).then((cached) => cached || caches.match('/')))
   )
 })
