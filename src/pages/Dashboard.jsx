@@ -272,22 +272,16 @@ function Dashboard() {
             <div className="dash-mod-desc">Post to any team</div>
           </div>
 
-          <div className="dash-mod">
+          <div className="dash-mod" onClick={() => navigate('/my-files')} style={{cursor:'pointer'}}>
             <div className="dash-mod-top"><span className="dash-mod-emoji">📁</span></div>
-            <div className="dash-mod-title">Drive</div>
-            <div className="dash-mod-desc">All teams' files</div>
+            <div className="dash-mod-title">My files</div>
+            <div className="dash-mod-desc">Your documents and folders</div>
           </div>
 
           <div className="dash-mod" onClick={() => navigate('/checklist')} style={{cursor:'pointer'}}>
             <div className="dash-mod-top"><span className="dash-mod-emoji">✅</span></div>
             <div className="dash-mod-title">Checklists</div>
             <div className="dash-mod-desc">My weekly tasks</div>
-          </div>
-
-          <div className="dash-mod">
-            <div className="dash-mod-top"><span className="dash-mod-emoji">📤</span></div>
-            <div className="dash-mod-title">Files</div>
-            <div className="dash-mod-desc">Upload and share files</div>
           </div>
 
         </div>
