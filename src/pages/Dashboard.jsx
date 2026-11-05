@@ -15,6 +15,7 @@ function Dashboard() {
   const [weekOffCount, setWeekOffCount] = useState(0)
   const [voluntariosCount, setVoluntariosCount] = useState(0)
   const [reportePendiente, setReportePendiente] = useState(false)
+  const [fotosNuevas, setFotosNuevas] = useState(0)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -23,7 +24,17 @@ function Dashboard() {
         const { data } = await supabase.from('perfiles').select('*').eq('id', session.session.user.id).single()
         setPerfil(data)
 
-        const { data: horasData } = await supabase.from('horas').select('*').eq('user_id', session.session.user.id).single()
+        const revisorFotos = data?.roles?.includes('staff_admin') || data?.roles?.includes('volunteer_coordinator')
+        if (revisorFotos) {
+          const { data: pendientes } = await supabase
+            .from('fotos_clase')
+            .select('envio_id, fecha, tutor_id, comunidad')
+            .eq('revisado', false)
+          const envios = new Set((pendientes || []).map(f => f.envio_id || `${f.fecha}|${f.tutor_id}|${f.comunidad}`))
+          setFotosNuevas(envios.size)
+        }
+
+        const { data: horasData } = await supabase.from('horas').select('*').eq('user_id', session.session.user.id).maybeSingle()
         setHoras(horasData)
 
         const { data: anunciosData } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(2)
@@ -61,6 +72,8 @@ function Dashboard() {
   if (!perfil) return <p>Loading...</p>
 
   const roles = perfil.roles
+  const esRevisorFotos = roles.includes('staff_admin') || roles.includes('volunteer_coordinator')
+  const veFotos = roles.includes('tutors') || esRevisorFotos
 
   function mostrarRol(rol) {
     if (rol === 'staff_admin') return 'Staff'
@@ -193,6 +206,27 @@ function Dashboard() {
               <div className="dash-mod-top"><span className="dash-mod-emoji">🗓️</span></div>
               <div className="dash-mod-title">My schedule</div>
               <div className="dash-mod-desc">Manage class times and links</div>
+            </div>
+          )}
+
+          {roles.includes('tutors') && (
+            <div className="dash-mod" onClick={() => navigate('/student-book')} style={{cursor:'pointer'}}>
+              <div className="dash-mod-top"><span className="dash-mod-emoji">📖</span></div>
+              <div className="dash-mod-title">Student book</div>
+              <div className="dash-mod-desc">View and share course book</div>
+            </div>
+          )}
+
+          {veFotos && (
+            <div className="dash-mod" onClick={() => navigate('/class-photos')} style={{cursor:'pointer'}}>
+              <div className="dash-mod-top">
+                <span className="dash-mod-emoji">📸</span>
+                {esRevisorFotos && fotosNuevas > 0 && <span className="dash-badge badge-warn">{fotosNuevas} new</span>}
+              </div>
+              <div className="dash-mod-title">Class photos</div>
+              <div className="dash-mod-desc">
+                {esRevisorFotos ? 'Review class photos' : 'Submit weekly class photos'}
+              </div>
             </div>
           )}
 

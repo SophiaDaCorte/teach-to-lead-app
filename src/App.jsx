@@ -19,12 +19,14 @@ import ContentHub from './pages/ContentHub.jsx'
 import Outreach from './pages/Outreach.jsx'
 import MyProjects from './pages/MyProjects.jsx'
 import MyClass from './pages/MyClass.jsx'
+import MySchedule from './pages/MySchedule.jsx'
+import StudentBook from './pages/StudentBook.jsx'
+import ClassPhotos from './pages/ClassPhotos.jsx'
 import MisTareas from './pages/MisTareas.jsx'
 import MisFaltas from './pages/MisFaltas.jsx'
 import MisCalificaciones from './pages/MisCalificaciones.jsx'
 import MiHorario from './pages/MiHorario.jsx'
 import MiLibro from './pages/MiLibro.jsx'
-import MySchedule from './pages/MySchedule.jsx'
 
 function App() {
   return (
@@ -49,12 +51,14 @@ function App() {
         <Route path="/outreach" element={<RutaProtegida><Outreach /></RutaProtegida>} />
         <Route path="/my-projects" element={<RutaProtegida><MyProjects /></RutaProtegida>} />
         <Route path="/my-class" element={<RutaProtegida><MyClass /></RutaProtegida>} />
+        <Route path="/my-schedule" element={<RutaProtegida><MySchedule /></RutaProtegida>} />
+        <Route path="/student-book" element={<RutaProtegida><StudentBook /></RutaProtegida>} />
+        <Route path="/class-photos" element={<RutaProtegida><ClassPhotos /></RutaProtegida>} />
         <Route path="/mis-tareas-clase" element={<RutaProtegida><MisTareas /></RutaProtegida>} />
         <Route path="/mis-faltas" element={<RutaProtegida><MisFaltas /></RutaProtegida>} />
         <Route path="/mis-calificaciones" element={<RutaProtegida><MisCalificaciones /></RutaProtegida>} />
         <Route path="/mi-horario" element={<RutaProtegida><MiHorario /></RutaProtegida>} />
         <Route path="/mi-libro" element={<RutaProtegida><MiLibro /></RutaProtegida>} />
-        <Route path="/my-schedule" element={<RutaProtegida><MySchedule /></RutaProtegida>} />
       </Routes>
     </BrowserRouter>
   )
