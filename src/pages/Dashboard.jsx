@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { cargarResumen } from '../chat.js'
+import { veSeccionTutor, esSupervisorDeClases } from '../tutor.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './Dashboard.css'
@@ -79,6 +80,8 @@ function Dashboard() {
   const roles = perfil.roles
   const esRevisorFotos = roles.includes('staff_admin') || roles.includes('volunteer_coordinator')
   const veFotos = roles.includes('tutors') || esRevisorFotos
+  const veTutor = veSeccionTutor(roles)
+  const soloSupervisor = esSupervisorDeClases(roles) && !roles.includes('tutors')
 
   function mostrarRol(rol) {
     if (rol === 'staff_admin') return 'Staff'
@@ -205,23 +208,23 @@ function Dashboard() {
             </div>
           )}
 
-          {roles.includes('tutors') && (
+          {veTutor && (
             <div className="dash-mod" onClick={() => navigate('/my-class')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🎓</span></div>
               <div className="dash-mod-title">My class</div>
-              <div className="dash-mod-desc">Attendance and gradebook</div>
+              <div className="dash-mod-desc">{soloSupervisor ? 'All classes: attendance and grades' : 'Attendance and gradebook'}</div>
             </div>
           )}
 
-          {roles.includes('tutors') && (
+          {veTutor && (
             <div className="dash-mod" onClick={() => navigate('/my-schedule')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">🗓️</span></div>
               <div className="dash-mod-title">My schedule</div>
-              <div className="dash-mod-desc">Manage class times and links</div>
+              <div className="dash-mod-desc">{soloSupervisor ? 'All classes: times and links' : 'Manage class times and links'}</div>
             </div>
           )}
 
-          {roles.includes('tutors') && (
+          {veTutor && (
             <div className="dash-mod" onClick={() => navigate('/student-book')} style={{cursor:'pointer'}}>
               <div className="dash-mod-top"><span className="dash-mod-emoji">📖</span></div>
               <div className="dash-mod-title">Student book</div>

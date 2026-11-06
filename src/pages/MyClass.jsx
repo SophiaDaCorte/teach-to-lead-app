@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import { cargarComunidadesTutor } from '../tutor.js'
+import SelectorComunidad from '../components/SelectorComunidad.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './MyClass.css'
@@ -18,6 +20,7 @@ function MyClass() {
   const [columnas, setColumnas] = useState([])
   const [notas, setNotas] = useState([])
   const [clases, setClases] = useState([])
+  const [cargando, setCargando] = useState(true)
   const [tab, setTab] = useState('attendance')
   const [gradebookTab, setGradebookTab] = useState('tareas')
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0])
@@ -35,18 +38,20 @@ function MyClass() {
     async function cargarDatos() {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session) return
-      setUserId(session.session.user.id)
+      const uid = session.session.user.id
+      setUserId(uid)
 
-      const { data: coms } = await supabase
-        .from('comunidades').select('*')
-        .eq('tutor_id', session.session.user.id).order('nombre')
-      setComunidades(coms || [])
+      const { data: p } = await supabase.from('perfiles').select('roles').eq('id', uid).maybeSingle()
+      const coms = await cargarComunidadesTutor(uid, p?.roles || [])
+      setComunidades(coms)
 
-      if (coms && coms.length > 0) {
-        setComunidadSeleccionada(coms[0])
-        await cargarEstudiantes(coms[0], session.session.user.id)
-        await cargarClases(coms[0].nombre)
+      if (coms.length > 0) {
+        const primera = coms.find(c => c.esMia) || coms[0]
+        setComunidadSeleccionada(primera)
+        await cargarEstudiantes(primera)
+        await cargarClases(primera.nombre)
       }
+      setCargando(false)
     }
     cargarDatos()
   }, [])
@@ -56,7 +61,7 @@ function MyClass() {
     setClases(data || [])
   }
 
-  async function cargarEstudiantes(com, uid) {
+  async function cargarEstudiantes(com) {
     const { data: ests } = await supabase.from('perfiles').select('*')
       .eq('comunidad', com.nombre).eq('nivel', com.nivel).contains('roles', ['estudiante'])
     setEstudiantes(ests || [])
@@ -76,14 +81,16 @@ function MyClass() {
 
   async function cambiarComunidad(comId) {
     const com = comunidades.find(c => c.id === comId)
+    if (!com) return
     setComunidadSeleccionada(com)
-    await cargarEstudiantes(com, userId)
+    setColumnaAbierta(null)
+    await cargarEstudiantes(com)
     await cargarClases(com.nombre)
   }
 
   async function recargar() {
     if (comunidadSeleccionada) {
-      await cargarEstudiantes(comunidadSeleccionada, userId)
+      await cargarEstudiantes(comunidadSeleccionada)
       await cargarClases(comunidadSeleccionada.nombre)
     }
   }
@@ -110,7 +117,8 @@ function MyClass() {
     if (!cTitulo.trim() || !comunidadSeleccionada) return
     const { data: col } = await supabase.from('gradebook_columnas').insert({
       comunidad: comunidadSeleccionada.nombre, titulo: cTitulo, tipo: cTipo,
-      max_score: cMaxScore, fecha: cFecha || null, tutor_id: userId
+      max_score: cMaxScore, fecha: cFecha || null,
+      tutor_id: comunidadSeleccionada.tutor_id || userId
     }).select().single()
 
     if (col && estudiantes.length > 0) {
@@ -194,7 +202,7 @@ function MyClass() {
                   <p style={{fontSize:'13px', fontWeight:500, margin:0}}>{n.nombre_estudiante}</p>
                   {n.url_entregado && (
                     <a href={n.url_entregado} target="_blank" rel="noreferrer" style={{fontSize:'11px', color:'#2d2a86'}}>
-                      Ver entrega <i className="ti ti-external-link" style={{fontSize:'10px'}} aria-hidden="true"></i>
+                      View submission <i className="ti ti-external-link" style={{fontSize:'10px'}} aria-hidden="true"></i>
                     </a>
                   )}
                 </div>
@@ -231,7 +239,9 @@ function MyClass() {
         <button className="mc-back" onClick={() => navigate('/dashboard')}>← Back</button>
         <h1 className="mc-title">My class</h1>
 
-        {comunidades.length === 0 && (
+        {cargando && <p style={{color:'#aaa', fontSize:'14px'}}>Loading...</p>}
+
+        {!cargando && comunidades.length === 0 && (
           <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'3rem'}}>No community assigned yet.</p>
         )}
 
@@ -240,9 +250,21 @@ function MyClass() {
             {comunidades.length > 1 && (
               <div style={{marginBottom:'1.25rem'}}>
                 <label className="mc-label">Select community</label>
-                <select className="mc-input" value={comunidadSeleccionada?.id || ''} onChange={(e) => cambiarComunidad(e.target.value)} style={{maxWidth:'300px'}}>
-                  {comunidades.map(c => <option key={c.id} value={c.id}>{c.nombre} {c.nivel}</option>)}
-                </select>
+                <SelectorComunidad
+                  className="mc-input"
+                  comunidades={comunidades}
+                  valor={comunidadSeleccionada?.id}
+                  onChange={cambiarComunidad}
+                  style={{maxWidth:'340px'}}
+                />
+              </div>
+            )}
+
+            {comunidadSeleccionada && !comunidadSeleccionada.esMia && (
+              <div style={{background:'#EEEDFE', border:'0.5px solid #c7d2fe', borderRadius:'10px', padding:'10px 14px', marginBottom:'1rem'}}>
+                <p style={{fontSize:'12px', color:'#3C3489', margin:0, fontWeight:500}}>
+                  👁️ You're viewing {comunidadSeleccionada.tutor_nombre ? `${comunidadSeleccionada.tutor_nombre}'s` : 'an unassigned'} class as staff. Changes you make are saved for that class.
+                </p>
               </div>
             )}
 
@@ -270,7 +292,7 @@ function MyClass() {
                     <p style={{fontSize:'11px', color:'#92400e', margin:'4px 0 0', opacity:0.8}}>
                       {clases.length > 0
                         ? `Class days: ${[...new Set(clases.map(c => c.dia_semana))].join(', ')}`
-                        : 'Set up your schedule in My Schedule to enable attendance.'}
+                        : 'Set up the schedule in My Schedule to enable attendance.'}
                     </p>
                   </div>
                 )}

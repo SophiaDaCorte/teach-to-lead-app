@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import { cargarComunidadesTutor } from '../tutor.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './StudentPages.css'
@@ -16,14 +17,10 @@ function StudentBook() {
     async function cargar() {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session) return
+      const uid = session.session.user.id
 
-      const { data: coms } = await supabase
-        .from('comunidades')
-        .select('*')
-        .eq('tutor_id', session.session.user.id)
-        .order('nombre')
-
-      const lista = coms || []
+      const { data: p } = await supabase.from('perfiles').select('roles').eq('id', uid).maybeSingle()
+      const lista = await cargarComunidadesTutor(uid, p?.roles || [])
       const niveles = [...new Set(lista.map(c => c.nivel).filter(Boolean))].sort()
 
       const resultado = await Promise.all(niveles.map(async (nivel) => {
