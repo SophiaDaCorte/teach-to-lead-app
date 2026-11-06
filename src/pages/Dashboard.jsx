@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import { cargarResumen } from '../chat.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './Dashboard.css'
@@ -16,6 +17,7 @@ function Dashboard() {
   const [voluntariosCount, setVoluntariosCount] = useState(0)
   const [reportePendiente, setReportePendiente] = useState(false)
   const [fotosNuevas, setFotosNuevas] = useState(0)
+  const [chatSinLeer, setChatSinLeer] = useState(0)
 
   useEffect(() => {
     async function cargarDatos() {
@@ -23,6 +25,9 @@ function Dashboard() {
       if (session.session) {
         const { data } = await supabase.from('perfiles').select('*').eq('id', session.session.user.id).single()
         setPerfil(data)
+
+        const resumen = await cargarResumen(session.session.user.id)
+        setChatSinLeer(resumen.total)
 
         const revisorFotos = data?.roles?.includes('staff_admin') || data?.roles?.includes('volunteer_coordinator')
         if (revisorFotos) {
@@ -101,7 +106,14 @@ function Dashboard() {
           </div>
           <div className="dash-top-right">
             <button className="dash-icon-btn" aria-label="Notifications"><i className="ti ti-bell" aria-hidden="true"></i></button>
-            <button className="dash-icon-btn" aria-label="Messages"><i className="ti ti-message-circle" aria-hidden="true"></i></button>
+            <button className="dash-icon-btn" aria-label="Messages" onClick={() => navigate('/chat')} style={{position:'relative'}}>
+              <i className="ti ti-message-circle" aria-hidden="true"></i>
+              {chatSinLeer > 0 && (
+                <span style={{position:'absolute', top:'-4px', right:'-4px', minWidth:'16px', height:'16px', borderRadius:'999px', background:'#b91c1c', color:'white', fontSize:'10px', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px'}}>
+                  {chatSinLeer > 99 ? '99+' : chatSinLeer}
+                </span>
+              )}
+            </button>
             <button className="dash-signout" onClick={cerrarSesion}><i className="ti ti-logout" aria-hidden="true"></i> Sign out</button>
           </div>
         </div>
@@ -270,6 +282,15 @@ function Dashboard() {
             <div className="dash-mod-top"><span className="dash-mod-emoji">📢</span></div>
             <div className="dash-mod-title">Announcements</div>
             <div className="dash-mod-desc">Post to any team</div>
+          </div>
+
+          <div className="dash-mod" onClick={() => navigate('/chat')} style={{cursor:'pointer'}}>
+            <div className="dash-mod-top">
+              <span className="dash-mod-emoji">💬</span>
+              {chatSinLeer > 0 && <span className="dash-badge badge-warn">{chatSinLeer} new</span>}
+            </div>
+            <div className="dash-mod-title">Chat</div>
+            <div className="dash-mod-desc">Teams, classes and direct messages</div>
           </div>
 
           <div className="dash-mod" onClick={() => navigate('/my-files')} style={{cursor:'pointer'}}>

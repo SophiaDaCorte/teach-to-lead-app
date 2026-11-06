@@ -23,6 +23,7 @@ import MySchedule from './pages/MySchedule.jsx'
 import StudentBook from './pages/StudentBook.jsx'
 import ClassPhotos from './pages/ClassPhotos.jsx'
 import MyFiles from './pages/MyFiles.jsx'
+import Chat from './pages/Chat.jsx'
 import MisTareas from './pages/MisTareas.jsx'
 import MisFaltas from './pages/MisFaltas.jsx'
 import MisCalificaciones from './pages/MisCalificaciones.jsx'
@@ -56,6 +57,7 @@ function App() {
         <Route path="/student-book" element={<RutaProtegida><StudentBook /></RutaProtegida>} />
         <Route path="/class-photos" element={<RutaProtegida><ClassPhotos /></RutaProtegida>} />
         <Route path="/my-files" element={<RutaProtegida><MyFiles /></RutaProtegida>} />
+        <Route path="/chat" element={<RutaProtegida><Chat /></RutaProtegida>} />
         <Route path="/mis-tareas-clase" element={<RutaProtegida><MisTareas /></RutaProtegida>} />
         <Route path="/mis-faltas" element={<RutaProtegida><MisFaltas /></RutaProtegida>} />
         <Route path="/mis-calificaciones" element={<RutaProtegida><MisCalificaciones /></RutaProtegida>} />

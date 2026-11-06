@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import { cargarResumen } from '../chat.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './EstudianteDashboard.css'
@@ -15,6 +16,7 @@ function EstudianteDashboard() {
   const [tareasPendientes, setTareasPendientes] = useState(0)
   const [promedio, setPromedio] = useState(100)
   const [asistenciaPct, setAsistenciaPct] = useState(100)
+  const [chatSinLeer, setChatSinLeer] = useState(0)
   const [excusaInput, setExcusaInput] = useState('')
   const [enviandoExcusa, setEnviandoExcusa] = useState(false)
   const [excusaEnviada, setExcusaEnviada] = useState(false)
@@ -29,6 +31,9 @@ function EstudianteDashboard() {
       const { data: perfilData } = await supabase
         .from('perfiles').select('*').eq('id', uid).single()
       setPerfil(perfilData)
+
+      const resumen = await cargarResumen(uid)
+      setChatSinLeer(resumen.total)
 
       if (perfilData?.comunidad) {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -190,6 +195,14 @@ function EstudianteDashboard() {
             <div className="est-mod-top"><span className="est-mod-emoji">📊</span></div>
             <div className="est-mod-title">Mis calificaciones</div>
             <div className="est-mod-desc">Ver todas mis notas</div>
+          </div>
+          <div className="est-mod" onClick={() => navigate('/chat')} style={{cursor:'pointer'}}>
+            <div className="est-mod-top">
+              <span className="est-mod-emoji">💬</span>
+              {chatSinLeer > 0 && <span className="est-badge">{chatSinLeer}</span>}
+            </div>
+            <div className="est-mod-title">Chat</div>
+            <div className="est-mod-desc">Tu clase y tu tutor</div>
           </div>
           <div className="est-mod" onClick={() => navigate('/mi-libro')} style={{cursor:'pointer'}}>
             <div className="est-mod-top"><span className="est-mod-emoji">📖</span></div>
