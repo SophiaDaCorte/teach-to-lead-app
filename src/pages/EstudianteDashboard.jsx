@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { cargarResumen } from '../chat.js'
+import Campana from '../components/Campana.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './EstudianteDashboard.css'
@@ -124,9 +125,12 @@ function EstudianteDashboard() {
             <h1 className="est-name">¡Hola, {perfil.nombre}! 👋</h1>
             <p className="est-role">Estudiante · {perfil.comunidad} {perfil.nivel} · Teach to Lead</p>
           </div>
-          <button className="est-signout" onClick={cerrarSesion}>
-            <i className="ti ti-logout" aria-hidden="true"></i>
-          </button>
+          <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+            <Campana esEstudiante claseBoton="est-signout" />
+            <button className="est-signout" onClick={cerrarSesion}>
+              <i className="ti ti-logout" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
 
         {claseHoy && (

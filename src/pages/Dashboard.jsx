@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { cargarResumen } from '../chat.js'
 import { veSeccionTutor, esSupervisorDeClases } from '../tutor.js'
+import Campana from '../components/Campana.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './Dashboard.css'
@@ -108,7 +109,7 @@ function Dashboard() {
             <p className="dash-role">{mostrarRol(perfil.roles[0])} · {perfil.titulo} · Teach to Lead</p>
           </div>
           <div className="dash-top-right">
-            <button className="dash-icon-btn" aria-label="Notifications"><i className="ti ti-bell" aria-hidden="true"></i></button>
+            <Campana />
             <button className="dash-icon-btn" aria-label="Messages" onClick={() => navigate('/chat')} style={{position:'relative'}}>
               <i className="ti ti-message-circle" aria-hidden="true"></i>
               {chatSinLeer > 0 && (
@@ -326,4 +327,4 @@ function Dashboard() {
   )
 }
 
-export default Dashboard
+export default Dashboard 

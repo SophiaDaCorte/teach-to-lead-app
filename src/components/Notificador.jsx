@@ -8,13 +8,14 @@ const MAX_VISIBLES = 3
 const DURACION = 7000
 const CLAVE_DESCARTADO = 'ttl-avisos-descartado'
 
+const ICONOS = {
+  calificacion: '📊', tarea: '📝', checklist: '✅', week_off: '🏖️',
+  certificado: '📜', horas: '⏰', anuncio: '📢'
+}
+
 function recortar(texto, max = 90) {
   const t = (texto || '').replace(/\s+/g, ' ').trim()
   return t.length > max ? t.slice(0, max - 1) + '…' : t
-}
-
-function fechaCorta(f) {
-  return new Date(f + 'T12:00:00').toLocaleDateString('es-HN', { day: 'numeric', month: 'short' })
 }
 
 function Notificador() {
@@ -74,12 +75,8 @@ function Notificador() {
       canal = supabase.channel(`avisos-${uid}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensajes' },
           (pl) => alMensaje(pl.new))
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gradebook_notas', filter: `estudiante_id=eq.${uid}` },
-          (pl) => alTareaNueva(pl.new))
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'gradebook_notas', filter: `estudiante_id=eq.${uid}` },
-          (pl) => alCalificada(pl.new))
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'checklists', filter: `asignado_a=eq.${uid}` },
-          (pl) => alChecklist(pl.new))
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones', filter: `user_id=eq.${uid}` },
+          (pl) => alNotificacion(pl.new))
         .subscribe()
     }
 
@@ -102,9 +99,9 @@ function Notificador() {
     } catch (e) {}
   }
 
-  function avisar({ icono, titulo, cuerpo, destino }) {
+  function avisar({ icono, titulo, cuerpo, destino, notiId }) {
     const id = ++contador.current
-    setAvisos(prev => [...prev, { id, icono, titulo, cuerpo, destino }].slice(-MAX_VISIBLES))
+    setAvisos(prev => [...prev, { id, icono, titulo, cuerpo, destino, notiId }].slice(-MAX_VISIBLES))
     setTimeout(() => quitar(id), DURACION)
     escritorio(titulo, cuerpo, destino)
   }
@@ -128,44 +125,19 @@ function Notificador() {
     })
   }
 
-  async function alTareaNueva(n) {
-    const { data: col } = await supabase
-      .from('gradebook_columnas').select('titulo, tipo, fecha').eq('id', n.columna_id).maybeSingle()
-    if (!col || col.tipo !== 'tarea') return
+  function alNotificacion(n) {
     avisar({
-      icono: '📝',
-      titulo: 'Nueva tarea',
-      cuerpo: col.fecha ? `${col.titulo} · para el ${fechaCorta(col.fecha)}` : col.titulo,
-      destino: '/mis-tareas-clase'
+      icono: ICONOS[n.tipo] || '🔔',
+      titulo: n.titulo,
+      cuerpo: recortar(n.cuerpo),
+      destino: n.destino || '/dashboard',
+      notiId: n.id
     })
   }
 
-  async function alCalificada(n) {
-    if (n.estado !== 'calificado') return
-    const { data: col } = await supabase
-      .from('gradebook_columnas').select('titulo, max_score').eq('id', n.columna_id).maybeSingle()
-    if (!col) return
-    const pct = col.max_score ? Math.round((n.nota / col.max_score) * 100) : null
-    avisar({
-      icono: '✅',
-      titulo: 'Te calificaron',
-      cuerpo: pct !== null ? `${col.titulo} · ${n.nota}/${col.max_score} (${pct}%)` : col.titulo,
-      destino: '/mis-calificaciones'
-    })
-  }
-
-  function alChecklist(c) {
-    if (c.creado_por === uid) return
-    avisar({
-      icono: '✅',
-      titulo: tr('New task', 'Nueva tarea'),
-      cuerpo: recortar(c.tarea),
-      destino: '/checklist'
-    })
-  }
-
-  function abrirAviso(a) {
+  async function abrirAviso(a) {
     quitar(a.id)
+    if (a.notiId) await supabase.from('notificaciones').update({ leida: true }).eq('id', a.notiId)
     navigate(a.destino)
   }
 
@@ -190,8 +162,8 @@ function Notificador() {
             <span className="ntf-title">{esEst ? 'Activar avisos' : 'Turn on alerts'}</span>
             <span className="ntf-body">
               {esEst
-                ? 'Te avisamos de mensajes y tareas nuevas, aunque estés en otra pestaña.'
-                : 'Get alerts for new messages and tasks, even when you are on another tab.'}
+                ? 'Te avisamos de mensajes, tareas y notas, aunque estés en otra pestaña.'
+                : 'Get alerts for messages and updates, even when you are on another tab.'}
             </span>
             <span className="ntf-actions">
               <button className="ntf-btn" onClick={activarPermiso}>{esEst ? 'Activar' : 'Turn on'}</button>
