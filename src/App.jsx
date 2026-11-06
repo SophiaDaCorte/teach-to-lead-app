@@ -3,6 +3,7 @@ import Home from './pages/Home.jsx'
 import PaginaVoluntarios from './pages/PaginaVoluntarios.jsx'
 import Login from './pages/Login.jsx'
 import RutaProtegida from './components/RutaProtegida.jsx'
+import Notificador from './components/Notificador.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MisHoras from './pages/MisHoras.jsx'
 import Checklist from './pages/Checklist.jsx'
@@ -33,6 +34,7 @@ import MiLibro from './pages/MiLibro.jsx'
 function App() {
   return (
     <BrowserRouter>
+      <Notificador />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

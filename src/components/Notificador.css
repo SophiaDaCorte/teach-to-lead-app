@@ -1,0 +1,75 @@
+.ntf-stack {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 12px;
+  right: 12px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ntf-card {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 360px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: white;
+  border: 0.5px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  text-align: left;
+  animation: ntf-in 0.2s ease-out;
+}
+
+.ntf-ask { cursor: default; }
+
+.ntf-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
+.ntf-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ntf-title { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.ntf-body { font-size: 12px; color: #777; overflow-wrap: anywhere; }
+
+.ntf-close {
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.ntf-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.ntf-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #a9cb5a;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ntf-btn-ghost {
+  background: white;
+  border: 0.5px solid #ddd;
+  color: #666;
+  font-weight: 500;
+}
+
+@keyframes ntf-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

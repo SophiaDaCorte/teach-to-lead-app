@@ -37,6 +37,12 @@ async function mensajeError(error, data) {
   return error?.message || 'Something went wrong.'
 }
 
+async function invocar(nombre, body) {
+  const { data, error } = await supabase.functions.invoke(nombre, { body })
+  if (error || data?.error) return { ok: false, mensaje: await mensajeError(error, data) }
+  return { ok: true, data }
+}
+
 function AdminPanel() {
   const navigate = useNavigate()
   const doodles = useDoodles()
@@ -62,9 +68,15 @@ function AdminPanel() {
   const [tituloEditando, setTituloEditando] = useState('')
   const [nombreEditando, setNombreEditando] = useState('')
   const [telefonoEditando, setTelefonoEditando] = useState('')
+  const [emailEditando, setEmailEditando] = useState('')
+  const [errorEdicion, setErrorEdicion] = useState('')
   const [resetUser, setResetUser] = useState(null)
   const [nuevoPassword, setNuevoPassword] = useState('')
   const [copiadoReset, setCopiadoReset] = useState(false)
+  const [errorReset, setErrorReset] = useState('')
+  const [resetOk, setResetOk] = useState(null)
+  const [copiadoOk, setCopiadoOk] = useState(false)
+  const [errorAccion, setErrorAccion] = useState('')
   const [guardando, setGuardando] = useState(false)
 
   const [comunidades, setComunidades] = useState([])
@@ -91,6 +103,7 @@ function AdminPanel() {
   const [editandoEst, setEditandoEst] = useState(null)
   const [nombreEstEditando, setNombreEstEditando] = useState('')
   const [telefonoEstEditando, setTelefonoEstEditando] = useState('')
+  const [emailEstEditando, setEmailEstEditando] = useState('')
 
   useEffect(() => {
     async function cargarPerfil() {
@@ -140,20 +153,18 @@ function AdminPanel() {
     }
     setCargando(true); setErrorEst('')
     const comunidadObj = comunidades.find(c => c.id === estudianteComunidad)
-    const { data, error } = await supabase.functions.invoke('create-user', {
-      body: {
-        nombre: estudianteNombre.trim(),
-        titulo: 'Estudiante',
-        roles: ['estudiante'],
-        email: estudianteEmail,
-        password: estudiantePassword,
-        telefono: estudianteTelefono.trim() || null,
-        comunidad: comunidadObj?.nombre || null,
-        nivel: comunidadObj?.nivel || null
-      }
+    const r = await invocar('create-user', {
+      nombre: estudianteNombre.trim(),
+      titulo: 'Estudiante',
+      roles: ['estudiante'],
+      email: estudianteEmail,
+      password: estudiantePassword,
+      telefono: estudianteTelefono.trim() || null,
+      comunidad: comunidadObj?.nombre || null,
+      nivel: comunidadObj?.nivel || null
     })
-    if (error || data?.error) {
-      setErrorEst(await mensajeError(error, data))
+    if (!r.ok) {
+      setErrorEst(r.mensaje)
     } else {
       setExitoEst(estudianteNombre); setTimeout(() => setExitoEst(null), 4000)
       setEstudianteNombre(''); setEstudianteEmail(''); setEstudianteTelefono('')
@@ -164,8 +175,16 @@ function AdminPanel() {
   }
 
   async function guardarEdicionEstudiante(e) {
-    await supabase.from('perfiles').update({ nombre: nombreEstEditando, telefono: telefonoEstEditando }).eq('id', e.id)
+    setGuardando(true); setErrorEdicion('')
+    const r = await invocar('update-user', {
+      userId: e.id,
+      nombre: nombreEstEditando,
+      telefono: telefonoEstEditando,
+      email: emailEstEditando
+    })
+    if (!r.ok) { setErrorEdicion(r.mensaje); setGuardando(false); return }
     setEditandoEst(null)
+    setGuardando(false)
     await cargarDatosEstudiantes()
   }
 
@@ -182,26 +201,17 @@ function AdminPanel() {
     await cargarDatosEstudiantes()
   }
 
-  async function borrarDatosYUsuario(id) {
-    await supabase.from('asistencia').delete().eq('estudiante_id', id)
-    await supabase.from('gradebook_notas').delete().eq('estudiante_id', id)
-    await supabase.from('checklists').delete().eq('asignado_a', id)
-    await supabase.from('horas').delete().eq('user_id', id)
-    await supabase.from('weekly_reports').delete().eq('user_id', id)
-    await supabase.from('solicitudes_certificado').delete().eq('user_id', id)
-    await supabase.from('solicitudes_week_off').delete().eq('user_id', id)
-    await supabase.from('observaciones_clase').delete().eq('user_id', id)
-    await supabase.from('content_hub').delete().eq('reclamado_por', id)
-    await supabase.from('advertencias').delete().eq('user_id', id)
-    await supabase.from('proyecto_tareas').delete().eq('asignado_a', id)
-    await supabase.from('outreach_events').delete().eq('asignado_a', id)
-    await supabase.from('perfiles').delete().eq('id', id)
-    await supabase.functions.invoke('delete-user', { body: { userId: id } })
+  async function eliminarUsuario(u) {
+    const ok = window.confirm(`Delete ${u.nombre} permanently? This removes their account, files and records. It can't be undone.`)
+    if (!ok) return false
+    setErrorAccion('')
+    const r = await invocar('delete-user', { userId: u.id })
+    if (!r.ok) { setErrorAccion(r.mensaje); return false }
+    return true
   }
 
-  async function eliminarEstudiantePermanente(id) {
-    await borrarDatosYUsuario(id)
-    await cargarDatosEstudiantes()
+  async function eliminarEstudiantePermanente(e) {
+    if (await eliminarUsuario(e)) await cargarDatosEstudiantes()
   }
 
   async function moverEstudiante(estudiante) {
@@ -223,11 +233,13 @@ function AdminPanel() {
   function copiarPassword() { navigator.clipboard.writeText(password); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }
   function copiarReset() { navigator.clipboard.writeText(nuevoPassword); setCopiadoReset(true); setTimeout(() => setCopiadoReset(false), 2000) }
   function copiarEstPassword() { navigator.clipboard.writeText(estudiantePassword); setCopiadoEst(true); setTimeout(() => setCopiadoEst(false), 2000) }
+  function copiarOk() { navigator.clipboard.writeText(resetOk.password); setCopiadoOk(true); setTimeout(() => setCopiadoOk(false), 2000) }
 
   const esAdmin = perfilActual?.roles.includes('staff_admin')
   const esCoordinator = perfilActual?.roles.includes('volunteer_coordinator')
   const esDirectorSchools = perfilActual?.roles.includes('director_of_schools')
   const esMarketing = perfilActual?.roles.includes('staff_marketing')
+  const puedeResetear = esAdmin || esCoordinator || esDirectorSchools || esMarketing
 
   const rolesParaMostrar = esAdmin
     ? ROLES_DISPONIBLES
@@ -244,18 +256,16 @@ function AdminPanel() {
       setErrorMsg('Please fill in all fields and select at least one role.'); return
     }
     setCargando(true); setErrorMsg('')
-    const { data, error } = await supabase.functions.invoke('create-user', {
-      body: {
-        nombre: nombre.trim(),
-        titulo,
-        roles: rolesSeleccionados,
-        email,
-        password,
-        telefono: telefono.trim() || null
-      }
+    const r = await invocar('create-user', {
+      nombre: nombre.trim(),
+      titulo,
+      roles: rolesSeleccionados,
+      email,
+      password,
+      telefono: telefono.trim() || null
     })
-    if (error || data?.error) {
-      setErrorMsg(await mensajeError(error, data))
+    if (!r.ok) {
+      setErrorMsg(r.mensaje)
     } else {
       setExito(nombre); setTimeout(() => setExito(null), 4000)
       setNombre(''); setTitulo(''); setEmail(''); setTelefono('')
@@ -267,16 +277,28 @@ function AdminPanel() {
 
   async function guardarEdicion() {
     if (!editando) return
-    setGuardando(true)
-    await supabase.from('perfiles').update({ nombre: nombreEditando, roles: rolesEditando, titulo: tituloEditando, telefono: telefonoEditando }).eq('id', editando.id)
+    setGuardando(true); setErrorEdicion('')
+    const r = await invocar('update-user', {
+      userId: editando.id,
+      nombre: nombreEditando,
+      titulo: tituloEditando,
+      telefono: telefonoEditando,
+      email: emailEditando,
+      roles: rolesEditando
+    })
+    if (!r.ok) { setErrorEdicion(r.mensaje); setGuardando(false); return }
     await cargarVoluntarios()
     setEditando(null); setGuardando(false)
   }
 
   async function resetPassword() {
-    if (!resetUser || !nuevoPassword.trim()) return
-    setGuardando(true)
-    await supabase.functions.invoke('reset-password', { body: { userId: resetUser.id, password: nuevoPassword } })
+    if (!resetUser) return
+    const nueva = nuevoPassword.trim()
+    if (nueva.length < 8) { setErrorReset('The password must be at least 8 characters.'); return }
+    setGuardando(true); setErrorReset('')
+    const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
+    if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
+    setResetOk({ nombre: resetUser.nombre, password: nueva })
     setResetUser(null); setNuevoPassword(''); setGuardando(false)
   }
 
@@ -292,9 +314,8 @@ function AdminPanel() {
     await cargarVoluntarios()
   }
 
-  async function eliminarPermanente(id) {
-    await borrarDatosYUsuario(id)
-    await cargarVoluntarios()
+  async function eliminarPermanente(u) {
+    if (await eliminarUsuario(u)) await cargarVoluntarios()
   }
 
   function agrupar(lista) {
@@ -321,7 +342,29 @@ function AdminPanel() {
           ? { Marketing: todosGrupos.Marketing }
           : {}
 
+  function renderAvisos() {
+    return (
+      <>
+        {resetOk && (
+          <div className="ap-success">
+            <p className="ap-success-title">✓ Password updated for {resetOk.nombre}</p>
+            <div className="ap-pw-box" style={{margin:'8px 0'}}>
+              <span className="ap-pw-val">{resetOk.password}</span>
+              <button className="ap-pw-copy" onClick={copiarOk}>{copiadoOk ? '✓ Copied!' : '📋 Copy'}</button>
+            </div>
+            <p className="ap-success-sub">Share it with them now. For security it can't be shown again later. To get a new one, reset it again.</p>
+            <button className="ap-cancel" style={{marginTop:'8px'}} onClick={() => setResetOk(null)}>Dismiss</button>
+          </div>
+        )}
+        {errorAccion && <p className="ap-error">{errorAccion}</p>}
+      </>
+    )
+  }
+
   function renderVoluntario(u) {
+    const rolesEditables = ROLES_DISPONIBLES.filter(r =>
+      esAdmin || rolesParaMostrar.some(x => x.value === r.value) || rolesEditando.includes(r.value)
+    )
     return (
       <div key={u.id}>
         {editando?.id === u.id && (
@@ -337,21 +380,29 @@ function AdminPanel() {
                 <input className="ap-input" type="text" value={tituloEditando} onChange={(e) => setTituloEditando(e.target.value)} />
               </div>
             </div>
-            <div className="ap-field">
-              <label className="ap-label">Phone number</label>
-              <input className="ap-input" type="tel" placeholder="+504 9999-9999" value={telefonoEditando} onChange={(e) => setTelefonoEditando(e.target.value)} />
+            <div className="ap-row2">
+              <div className="ap-field">
+                <label className="ap-label">Email (login)</label>
+                <input className="ap-input" type="email" value={emailEditando} onChange={(e) => setEmailEditando(e.target.value)} />
+              </div>
+              <div className="ap-field">
+                <label className="ap-label">Phone number</label>
+                <input className="ap-input" type="tel" placeholder="+504 9999-9999" value={telefonoEditando} onChange={(e) => setTelefonoEditando(e.target.value)} />
+              </div>
             </div>
+            <p className="ap-info" style={{margin:'0 0 8px'}}>If you change the email, they log in with the new one and keep the same password.</p>
             <div className="ap-field" style={{marginTop:'10px'}}>
               <label className="ap-label">Roles</label>
               <div className="ap-roles">
-                {ROLES_DISPONIBLES.map(r => (
+                {rolesEditables.map(r => (
                   <button key={r.value} className={`ap-role-btn ${rolesEditando.includes(r.value) ? 'selected' : ''}`} onClick={() => toggleRolEditando(r.value)}>{r.label}</button>
                 ))}
               </div>
             </div>
+            {errorEdicion && <p className="ap-error">{errorEdicion}</p>}
             <div className="ap-edit-btns">
               <button className="ap-save" onClick={guardarEdicion} disabled={guardando}>{guardando ? 'Saving...' : 'Save changes'}</button>
-              <button className="ap-cancel" onClick={() => setEditando(null)}>Cancel</button>
+              <button className="ap-cancel" onClick={() => { setEditando(null); setErrorEdicion('') }}>Cancel</button>
             </div>
           </div>
         )}
@@ -366,9 +417,10 @@ function AdminPanel() {
               <label className="ap-label">New password</label>
               <input className="ap-input" type="text" placeholder="Enter new password..." value={nuevoPassword} onChange={(e) => setNuevoPassword(e.target.value)} />
             </div>
+            {errorReset && <p className="ap-error">{errorReset}</p>}
             <div className="ap-edit-btns">
               <button className="ap-save" onClick={resetPassword} disabled={guardando}>{guardando ? 'Resetting...' : 'Reset password'}</button>
-              <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword('') }}>Cancel</button>
+              <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword(''); setErrorReset('') }}>Cancel</button>
             </div>
           </div>
         )}
@@ -383,9 +435,9 @@ function AdminPanel() {
             </div>
           </div>
           <div className="ap-vol-btns">
-            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setResetUser(null) }}>✏️ Edit</button>
-            {(esAdmin || esMarketing) && (
-              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setEditando(null) }}>🔑 Reset</button>
+            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo || ''); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setEmailEditando(u.email || ''); setErrorEdicion(''); setResetUser(null) }}>✏️ Edit</button>
+            {puedeResetear && (
+              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setErrorReset(''); setEditando(null) }}>🔑 Reset</button>
             )}
             {esAdmin && <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>Mark inactive</button>}
           </div>
@@ -470,6 +522,7 @@ function AdminPanel() {
 
         {tab === 'manage' && (
           <div>
+            {renderAvisos()}
             <input className="ap-search" type="text" placeholder="Search by name..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
             {Object.entries(gruposVisibles).map(([nombre, personas]) => {
               if (personas.length === 0) return null
@@ -493,6 +546,7 @@ function AdminPanel() {
 
         {tab === 'students' && (
           <div>
+            {renderAvisos()}
             {exitoEst && (
               <div className="ap-success">
                 <p className="ap-success-title">✓ {exitoEst} added successfully</p>
@@ -650,9 +704,10 @@ function AdminPanel() {
                                 <label className="ap-label">New password</label>
                                 <input className="ap-input" type="text" placeholder="Enter new password..." value={nuevoPassword} onChange={(ev) => setNuevoPassword(ev.target.value)} />
                               </div>
+                              {errorReset && <p className="ap-error">{errorReset}</p>}
                               <div className="ap-edit-btns">
                                 <button className="ap-save" onClick={resetPassword} disabled={guardando}>{guardando ? 'Resetting...' : 'Reset password'}</button>
-                                <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword('') }}>Cancel</button>
+                                <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword(''); setErrorReset('') }}>Cancel</button>
                               </div>
                             </div>
                           )}
@@ -669,9 +724,15 @@ function AdminPanel() {
                                   <input className="ap-input" type="tel" placeholder="+504 9999-9999" value={telefonoEstEditando} onChange={(ev) => setTelefonoEstEditando(ev.target.value)} />
                                 </div>
                               </div>
+                              <div className="ap-field">
+                                <label className="ap-label">Email (login)</label>
+                                <input className="ap-input" type="email" value={emailEstEditando} onChange={(ev) => setEmailEstEditando(ev.target.value)} />
+                              </div>
+                              <p className="ap-info" style={{margin:'0 0 8px'}}>If you change the email, they log in with the new one and keep the same password.</p>
+                              {errorEdicion && <p className="ap-error">{errorEdicion}</p>}
                               <div className="ap-edit-btns">
                                 <button className="ap-save" onClick={() => guardarEdicionEstudiante(e)} disabled={guardando}>{guardando ? 'Saving...' : 'Save changes'}</button>
-                                <button className="ap-cancel" onClick={() => setEditandoEst(null)}>Cancel</button>
+                                <button className="ap-cancel" onClick={() => { setEditandoEst(null); setErrorEdicion('') }}>Cancel</button>
                               </div>
                             </div>
                           )}
@@ -683,11 +744,11 @@ function AdminPanel() {
                               {e.email && <p style={{fontSize:'11px', color:'#aaa', margin:0}}>{e.email}</p>}
                             </div>
                             <div className="ap-vol-btns">
-                              <button className="ap-btn-edit" onClick={() => { setEditandoEst(e.id); setNombreEstEditando(e.nombre); setTelefonoEstEditando(e.telefono || ''); setMoviendo(null); setResetUser(null) }}>✏️ Edit</button>
+                              <button className="ap-btn-edit" onClick={() => { setEditandoEst(e.id); setNombreEstEditando(e.nombre); setTelefonoEstEditando(e.telefono || ''); setEmailEstEditando(e.email || ''); setErrorEdicion(''); setMoviendo(null); setResetUser(null) }}>✏️ Edit</button>
                               <button className="ap-btn-edit" onClick={() => { setMoviendo(e.id); setComunidadDestino(''); setResetUser(null) }}>Move</button>
-                              <button className="ap-btn-reset" onClick={() => { setResetUser(e); setNuevoPassword(generarPassword()); setMoviendo(null) }}>🔑 Reset</button>
+                              <button className="ap-btn-reset" onClick={() => { setResetUser(e); setNuevoPassword(generarPassword()); setErrorReset(''); setMoviendo(null) }}>🔑 Reset</button>
                               <button className="ap-btn-deact" onClick={() => marcarEstudianteInactivo(e.id)}>Inactive</button>
-                              {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarEstudiantePermanente(e.id)}>Delete</button>}
+                              {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarEstudiantePermanente(e)}>Delete</button>}
                             </div>
                           </div>
                         </div>
@@ -703,6 +764,7 @@ function AdminPanel() {
 
         {tab === 'inactive' && (
           <div>
+            {renderAvisos()}
             <p className="ap-section">Volunteers</p>
             {inactivos.filter(u => !u.roles_anteriores?.includes('estudiante')).length === 0 && (
               <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', marginTop:'1rem'}}>No inactive volunteers.</p>
@@ -716,7 +778,7 @@ function AdminPanel() {
                 </div>
                 <div className="ap-vol-btns">
                   <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>
-                  {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>}
+                  {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarPermanente(u)}>Delete</button>}
                 </div>
               </div>
             ))}
@@ -733,7 +795,7 @@ function AdminPanel() {
                 </div>
                 <div className="ap-vol-btns">
                   <button className="ap-btn-react" onClick={() => reactivar(u.id)}>Reactivate</button>
-                  {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarPermanente(u.id)}>Delete</button>}
+                  {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarPermanente(u)}>Delete</button>}
                 </div>
               </div>
             ))}

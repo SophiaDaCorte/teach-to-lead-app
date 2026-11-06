@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import { equiposDe, comunidadesDe, cargarResumen, esVoluntario, supervisa, esParticipante } from '../chat.js'
 import '../components/PageBackground.css'
 import './Chat.css'
+
+const PAGINA = 100
 
 const EN = {
   back: '← Back', chats: '← Chats', title: 'Chat', teams: 'Teams', classes: 'Classes',
@@ -17,7 +19,8 @@ const EN = {
   myTutor: 'My tutor', privateMsg: 'Private message', privateTitle: 'Private message',
   studentMsgs: 'Student messages', myStudents: 'My students', people: 'Volunteers',
   supervision: 'Student–tutor chats (read only)', readOnly: 'Read only',
-  readOnlyNote: 'You are viewing this chat for supervision. You cannot write here.'
+  readOnlyNote: 'You are viewing this chat for supervision. You cannot write here.',
+  older: 'Load earlier messages'
 }
 
 const ES = {
@@ -31,7 +34,8 @@ const ES = {
   myTutor: 'Mi tutor', privateMsg: 'Mensaje privado', privateTitle: 'Mensaje privado',
   studentMsgs: 'Mensajes de estudiantes', myStudents: 'Mis estudiantes', people: 'Voluntarios',
   supervision: 'Chats estudiante–tutor (solo lectura)', readOnly: 'Solo lectura',
-  readOnlyNote: 'Estás viendo este chat para supervisión. No puedes escribir aquí.'
+  readOnlyNote: 'Estás viendo este chat para supervisión. No puedes escribir aquí.',
+  older: 'Ver mensajes anteriores'
 }
 
 const PRIVADOS = ['dm', 'st', 'tutor']
@@ -54,6 +58,8 @@ function Chat() {
   const [abierto, setAbierto] = useState(null)
   const [mensajes, setMensajes] = useState([])
   const [cargandoMsgs, setCargandoMsgs] = useState(false)
+  const [hayMas, setHayMas] = useState(false)
+  const [cargandoMas, setCargandoMas] = useState(false)
   const [listo, setListo] = useState(false)
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -62,6 +68,7 @@ function Chat() {
   const [filtro, setFiltro] = useState('')
   const abiertoRef = useRef(null)
   const msgsRef = useRef(null)
+  const restaurar = useRef(null)
 
   const roles = perfil?.roles || []
   const esEst = roles.includes('estudiante')
@@ -150,8 +157,15 @@ function Chat() {
     return () => { supabase.removeChannel(sub) }
   }, [userId])
 
-  useEffect(() => {
-    if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight
+  useLayoutEffect(() => {
+    const el = msgsRef.current
+    if (!el) return
+    if (restaurar.current !== null) {
+      el.scrollTop = el.scrollHeight - restaurar.current
+      restaurar.current = null
+    } else {
+      el.scrollTop = el.scrollHeight
+    }
   }, [mensajes, abierto])
 
   function alRecibir(m) {
@@ -178,16 +192,44 @@ function Chat() {
     setAbierto(clave)
     abiertoRef.current = clave
     setMensajes([])
+    setHayMas(false)
     setCargandoMsgs(true)
     const { data } = await supabase
       .from('chat_mensajes').select('*')
       .eq('canal', clave)
       .order('created_at', { ascending: false })
-      .limit(100)
+      .limit(PAGINA)
     const lista = (data || []).reverse()
     setMensajes(lista)
+    setHayMas((data || []).length === PAGINA)
     setCargandoMsgs(false)
     if (lista.length > 0) await marcarLeido(clave, lista[lista.length - 1].created_at)
+  }
+
+  async function cargarMas() {
+    if (cargandoMas || mensajes.length === 0 || !abierto) return
+    setCargandoMas(true)
+    const canal = abierto
+    const { data, error: e } = await supabase
+      .from('chat_mensajes').select('*')
+      .eq('canal', canal)
+      .lt('created_at', mensajes[0].created_at)
+      .order('created_at', { ascending: false })
+      .limit(PAGINA)
+
+    if (e) { setError(e.message); setCargandoMas(false); return }
+    if (abiertoRef.current !== canal) { setCargandoMas(false); return }
+
+    const antiguos = (data || []).reverse()
+    setHayMas((data || []).length === PAGINA)
+    if (antiguos.length > 0) {
+      restaurar.current = msgsRef.current ? msgsRef.current.scrollHeight : null
+      setMensajes(prev => {
+        const ids = new Set(prev.map(m => m.id))
+        return [...antiguos.filter(m => !ids.has(m.id)), ...prev]
+      })
+    }
+    setCargandoMas(false)
   }
 
   function abrirDm(otroId) {
@@ -437,6 +479,13 @@ function Chat() {
 
             <div className="cht-msgs" ref={msgsRef}>
               {cargandoMsgs && <p className="cht-empty">{L.loading}</p>}
+
+              {hayMas && !cargandoMsgs && (
+                <button className="cht-more" onClick={cargarMas} disabled={cargandoMas}>
+                  {cargandoMas ? L.loading : L.older}
+                </button>
+              )}
+
               {!cargandoMsgs && mensajes.length === 0 && <p className="cht-empty">{L.empty}</p>}
 
               {mensajes.map(m => {

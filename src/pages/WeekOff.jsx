@@ -5,6 +5,27 @@ import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './WeekOff.css'
 
+function formatFecha(fecha) {
+  if (!fecha) return '—'
+  return new Date(String(fecha).slice(0, 10) + 'T12:00:00')
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function Badge({ estado }) {
+  const map = {
+    pendiente: { label: 'Pending', cls: 'badge-pending' },
+    aprobado: { label: 'Approved', cls: 'badge-approved' },
+    rechazado: { label: 'Rejected', cls: 'badge-rejected' },
+  }
+  const { label, cls } = map[estado] || { label: estado, cls: '' }
+  return <span className={`wo-badge ${cls}`}>{label}</span>
+}
+
+const estiloBasura = {
+  background: 'none', border: 'none', cursor: 'pointer',
+  color: '#E24B4A', fontSize: '15px', padding: '4px'
+}
+
 function WeekOff() {
   const navigate = useNavigate()
   const doodles = useDoodles()
@@ -17,44 +38,52 @@ function WeekOff() {
   const [razon, setRazon] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(false)
+  const [error, setError] = useState('')
 
   const [misRequests, setMisRequests] = useState([])
   const [todasRequests, setTodasRequests] = useState([])
 
+  const esAdmin = !!perfil?.roles?.includes('staff_admin')
+
   useEffect(() => {
     async function cargarDatos() {
       const { data: session } = await supabase.auth.getSession()
-      if (session.session) {
-        setUserId(session.session.user.id)
+      if (!session.session) return
+      const uid = session.session.user.id
+      setUserId(uid)
 
-        const { data: perfilData } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', session.session.user.id)
-          .single()
-        setPerfil(perfilData)
+      const { data: perfilData } = await supabase
+        .from('perfiles').select('*').eq('id', uid).single()
+      setPerfil(perfilData)
 
-        const { data: mis } = await supabase
-          .from('solicitudes_week_off')
-          .select('*')
-          .eq('user_id', session.session.user.id)
-          .order('created_at', { ascending: false })
-        setMisRequests(mis || [])
-
-        const { data: todas } = await supabase
-          .from('solicitudes_week_off')
-          .select('*')
-          .order('created_at', { ascending: false })
-        setTodasRequests(todas || [])
-      }
+      await cargarSolicitudes(uid, !!perfilData?.roles?.includes('staff_admin'))
     }
     cargarDatos()
   }, [])
 
+  async function cargarSolicitudes(uid, admin) {
+    const { data: mis } = await supabase
+      .from('solicitudes_week_off').select('*')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+    setMisRequests(mis || [])
+
+    if (admin) {
+      const { data: todas } = await supabase
+        .from('solicitudes_week_off').select('*')
+        .order('created_at', { ascending: false })
+      setTodasRequests(todas || [])
+    }
+  }
+
   async function enviarRequest() {
     if (!fechaInicio || !fechaFin) return
-    setEnviando(true)
-    const { error } = await supabase.from('solicitudes_week_off').insert({
+    if (fechaFin < fechaInicio) {
+      setError('The end date must be after the start date.')
+      return
+    }
+    setEnviando(true); setError('')
+    const { error: e } = await supabase.from('solicitudes_week_off').insert({
       user_id: userId,
       fecha_inicio: fechaInicio,
       fecha_fin: fechaFin,
@@ -62,56 +91,43 @@ function WeekOff() {
       nombre_solicitante: perfil?.nombre,
       estado: 'pendiente'
     })
-    if (!error) {
+    if (e) {
+      setError(e.message)
+    } else {
       setExito(true)
-      setFechaInicio('')
-      setFechaFin('')
-      setRazon('')
-      const { data: mis } = await supabase
-        .from('solicitudes_week_off')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-      setMisRequests(mis || [])
+      setTimeout(() => setExito(false), 4000)
+      setFechaInicio(''); setFechaFin(''); setRazon('')
+      await cargarSolicitudes(userId, esAdmin)
     }
     setEnviando(false)
   }
 
-  async function eliminarRequest(id) {
-    const { error } = await supabase.from('solicitudes_week_off').delete().eq('id', id)
-    console.log('delete error:', error)
-    const { data: mis } = await supabase
-      .from('solicitudes_week_off')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-    setMisRequests(mis || [])
+  async function eliminarRequest(r) {
+    const propia = r.user_id === userId
+    const texto = propia
+      ? 'Delete this request?'
+      : `Delete the request from ${r.nombre_solicitante || 'this person'}? This can't be undone.`
+    if (!window.confirm(texto)) return
+
+    setError('')
+    const { data, error: e } = await supabase
+      .from('solicitudes_week_off').delete().eq('id', r.id).select()
+
+    if (e) { setError(e.message); return }
+    if (!data || data.length === 0) {
+      setError("The request couldn't be deleted. You may not have permission.")
+      return
+    }
+    await cargarSolicitudes(userId, esAdmin)
   }
 
   async function cambiarEstado(id, estado) {
-    await supabase.from('solicitudes_week_off').update({ estado }).eq('id', id)
-    const { data } = await supabase
-      .from('solicitudes_week_off')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setTodasRequests(data || [])
+    setError('')
+    const { error: e } = await supabase
+      .from('solicitudes_week_off').update({ estado }).eq('id', id)
+    if (e) { setError(e.message); return }
+    await cargarSolicitudes(userId, esAdmin)
   }
-
-  function formatFecha(fecha) {
-    return new Date(fecha).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-
-  function Badge({ estado }) {
-    const map = {
-      pendiente: { label: 'Pending', cls: 'badge-pending' },
-      aprobado: { label: 'Approved', cls: 'badge-approved' },
-      rechazado: { label: 'Rejected', cls: 'badge-rejected' },
-    }
-    const { label, cls } = map[estado] || { label: estado, cls: '' }
-    return <span className={`wo-badge ${cls}`}>{label}</span>
-  }
-
-  const esAdmin = perfil?.roles.includes('staff_admin')
 
   return (
     <div className="page-wrapper">
@@ -127,9 +143,18 @@ function WeekOff() {
           <button className={`wo-tab ${tab === 'request' ? 'active' : ''}`} onClick={() => setTab('request')}>Request</button>
           <button className={`wo-tab ${tab === 'mine' ? 'active' : ''}`} onClick={() => setTab('mine')}>My requests</button>
           {esAdmin && (
-            <button className={`wo-tab ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>All requests</button>
+            <button className={`wo-tab ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>
+              All requests
+              {todasRequests.filter(r => r.estado === 'pendiente').length > 0 && (
+                <span style={{marginLeft:'6px', fontSize:'10px', fontWeight:600, padding:'1px 6px', borderRadius:'999px', background:'#FCEBEB', color:'#A32D2D'}}>
+                  {todasRequests.filter(r => r.estado === 'pendiente').length}
+                </span>
+              )}
+            </button>
           )}
         </div>
+
+        {error && <p style={{fontSize:'13px', color:'#b91c1c', margin:'0 0 12px'}}>{error}</p>}
 
         {tab === 'request' && (
           <div>
@@ -153,7 +178,7 @@ function WeekOff() {
                 <label className="wo-label">Reason (optional)</label>
                 <input className="wo-input" type="text" placeholder="e.g. Family trip, exams..." value={razon} onChange={(e) => setRazon(e.target.value)} />
               </div>
-              <button className="wo-submit" onClick={enviarRequest} disabled={enviando}>
+              <button className="wo-submit" onClick={enviarRequest} disabled={enviando || !fechaInicio || !fechaFin}>
                 {enviando ? 'Submitting...' : 'Submit request'}
               </button>
             </div>
@@ -165,28 +190,22 @@ function WeekOff() {
             {misRequests.length === 0 && (
               <p style={{color:'#aaa', fontSize:'14px', textAlign:'center', padding:'1rem 0'}}>No requests yet.</p>
             )}
-            {misRequests.map(r => {
-              console.log('request estado:', r.estado)
-              return (
-                <div key={r.id} className="wo-my-row">
-                  <div>
-                    <p className="wo-my-dates">{formatFecha(r.fecha_inicio)} – {formatFecha(r.fecha_fin)}</p>
-                    {r.razon && <p className="wo-my-reason">{r.razon}</p>}
-                  </div>
-                  <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-                    <Badge estado={r.estado} />
-                    {r.estado === 'pendiente' && (
-                      <button
-                        onClick={() => eliminarRequest(r.id)}
-                        style={{background:'none', border:'none', cursor:'pointer', color:'#E24B4A', fontSize:'14px', padding:0}}
-                      >
-                        <i className="ti ti-trash" aria-hidden="true"></i>
-                      </button>
-                    )}
-                  </div>
+            {misRequests.map(r => (
+              <div key={r.id} className="wo-my-row">
+                <div>
+                  <p className="wo-my-dates">{formatFecha(r.fecha_inicio)} – {formatFecha(r.fecha_fin)}</p>
+                  {r.razon && <p className="wo-my-reason">{r.razon}</p>}
                 </div>
-              )
-            })}
+                <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                  <Badge estado={r.estado} />
+                  {r.estado === 'pendiente' && (
+                    <button style={estiloBasura} onClick={() => eliminarRequest(r)} aria-label="Delete request">
+                      <i className="ti ti-trash" aria-hidden="true"></i>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -204,18 +223,23 @@ function WeekOff() {
                   <p className="wo-req-name">{r.nombre_solicitante}</p>
                   <p className="wo-req-dates">{formatFecha(r.fecha_inicio)} – {formatFecha(r.fecha_fin)}{r.razon ? ` · ${r.razon}` : ''}</p>
                 </div>
-                {r.estado === 'pendiente' ? (
-                  <div className="wo-btns">
-                    <button className="wo-approve" onClick={() => cambiarEstado(r.id, 'aprobado')}>
-                      <i className="ti ti-check" aria-hidden="true"></i> Approve
-                    </button>
-                    <button className="wo-reject" onClick={() => cambiarEstado(r.id, 'rechazado')}>
-                      <i className="ti ti-x" aria-hidden="true"></i> Reject
-                    </button>
-                  </div>
-                ) : (
-                  <Badge estado={r.estado} />
-                )}
+                <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                  {r.estado === 'pendiente' ? (
+                    <div className="wo-btns">
+                      <button className="wo-approve" onClick={() => cambiarEstado(r.id, 'aprobado')}>
+                        <i className="ti ti-check" aria-hidden="true"></i> Approve
+                      </button>
+                      <button className="wo-reject" onClick={() => cambiarEstado(r.id, 'rechazado')}>
+                        <i className="ti ti-x" aria-hidden="true"></i> Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <Badge estado={r.estado} />
+                  )}
+                  <button style={estiloBasura} onClick={() => eliminarRequest(r)} aria-label="Delete request">
+                    <i className="ti ti-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             ))}
           </div>

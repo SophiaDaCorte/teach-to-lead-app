@@ -1,39 +1,33 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {
+  corsHeaders, respuesta, clienteAdmin, identificar, rolesEfectivos, puedeGestionar,
+} from '../_shared/permisos.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const admin = clienteAdmin()
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const quien = await identificar(req, admin)
+    if (!quien) return respuesta({ error: 'You must be signed in as staff to do this.' }, 401)
 
     const { userId, password } = await req.json()
+    if (!userId) return respuesta({ error: 'Missing user.' }, 400)
+    if (typeof password !== 'string' || password.trim().length < 8) {
+      return respuesta({ error: 'The password must be at least 8 characters.' }, 400)
+    }
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      password
-    })
+    const { data: objetivo } = await admin
+      .from('perfiles').select('id, roles, roles_anteriores').eq('id', userId).maybeSingle()
+    if (!objetivo || !puedeGestionar(quien.roles, rolesEfectivos(objetivo))) {
+      return respuesta({ error: "You don't have permission to reset this password." }, 403)
+    }
 
-    if (error) throw error
+    const { error } = await admin.auth.admin.updateUserById(userId, { password: password.trim() })
+    if (error) return respuesta({ error: error.message }, 400)
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
+    return respuesta({ success: true })
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    )
+    return respuesta({ error: (error as { message?: string })?.message || 'Unknown error' }, 400)
   }
 })
