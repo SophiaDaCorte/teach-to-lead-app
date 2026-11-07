@@ -1,6 +1,7 @@
 import {
   corsHeaders, respuesta, clienteAdmin, identificar, rolesEfectivos, puedeGestionar,
 } from '../_shared/permisos.ts'
+import { guardarPassword } from '../_shared/cifrado.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -23,10 +24,12 @@ Deno.serve(async (req) => {
       return respuesta({ error: "You don't have permission to reset this password." }, 403)
     }
 
-    const { error } = await admin.auth.admin.updateUserById(userId, { password: password.trim() })
+    const nueva = password.trim()
+    const { error } = await admin.auth.admin.updateUserById(userId, { password: nueva })
     if (error) return respuesta({ error: error.message }, 400)
 
-    return respuesta({ success: true })
+    const guardada = await guardarPassword(admin, userId, nueva)
+    return respuesta({ success: true, guardada })
   } catch (error) {
     return respuesta({ error: (error as { message?: string })?.message || 'Unknown error' }, 400)
   }

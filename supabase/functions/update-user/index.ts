@@ -1,3 +1,5 @@
+
+// @ts-nocheck
 import {
   corsHeaders, respuesta, clienteAdmin, identificar,
   rolesPermitidos, rolesEfectivos, puedeGestionar, emailValido,
@@ -18,6 +20,10 @@ const COPIAS_DE_NOMBRE: [string, string, string][] = [
   ['observaciones_clase', 'nombre_tutor', 'tutor_id'],
   ['chat_mensajes', 'nombre', 'user_id'],
 ]
+
+function mismosRoles(a: string[], b: string[]) {
+  return a.length === b.length && a.every((r) => b.includes(r))
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -55,16 +61,23 @@ Deno.serve(async (req) => {
       const actuales: string[] = objetivo.roles || []
       if (nuevos.length === 0) return respuesta({ error: 'At least one role is required.' }, 400)
 
-      if (quien.id === userId) {
-        const igual = nuevos.length === actuales.length && nuevos.every((r) => actuales.includes(r))
-        if (!igual) return respuesta({ error: "You can't change your own roles." }, 403)
-      }
+      // Solo se evalúa si los roles realmente cambian
+      if (!mismosRoles(nuevos, actuales)) {
+        if (quien.id === userId) {
+          if (!quien.roles.includes('staff_admin')) {
+            return respuesta({ error: "You can't change your own roles." }, 403)
+          }
+          if (!nuevos.includes('staff_admin')) {
+            return respuesta({ error: "You can't remove your own admin access. Ask another admin to do it." }, 403)
+          }
+        }
 
-      const permitidos = rolesPermitidos(quien.roles)
-      if (!nuevos.every((r) => permitidos.includes(r) || actuales.includes(r))) {
-        return respuesta({ error: "You can't give that role." }, 403)
+        const permitidos = rolesPermitidos(quien.roles)
+        if (!nuevos.every((r) => permitidos.includes(r) || actuales.includes(r))) {
+          return respuesta({ error: "You can't give that role." }, 403)
+        }
+        cambios.roles = nuevos
       }
-      cambios.roles = nuevos
     }
 
     if (typeof body.email === 'string' && body.email.trim()) {
@@ -84,7 +97,7 @@ Deno.serve(async (req) => {
       cambios.email = nuevoEmail
     }
 
-    if (Object.keys(cambios).length === 0) return respuesta({ error: 'Nothing to update.' }, 400)
+    if (Object.keys(cambios).length === 0) return respuesta({ success: true, sinCambios: true })
 
     const { error: errPerfil } = await admin.from('perfiles').update(cambios).eq('id', userId)
     if (errPerfil) return respuesta({ error: errPerfil.message }, 400)

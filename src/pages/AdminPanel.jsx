@@ -70,14 +70,15 @@ function AdminPanel() {
   const [telefonoEditando, setTelefonoEditando] = useState('')
   const [emailEditando, setEmailEditando] = useState('')
   const [errorEdicion, setErrorEdicion] = useState('')
-  const [resetUser, setResetUser] = useState(null)
-  const [nuevoPassword, setNuevoPassword] = useState('')
-  const [copiadoReset, setCopiadoReset] = useState(false)
-  const [errorReset, setErrorReset] = useState('')
-  const [resetOk, setResetOk] = useState(null)
-  const [copiadoOk, setCopiadoOk] = useState(false)
   const [errorAccion, setErrorAccion] = useState('')
   const [guardando, setGuardando] = useState(false)
+
+  const [resetUser, setResetUser] = useState(null)
+  const [nuevoPassword, setNuevoPassword] = useState('')
+  const [passwordActual, setPasswordActual] = useState(null)
+  const [copiadoActual, setCopiadoActual] = useState(false)
+  const [errorReset, setErrorReset] = useState('')
+  const [resetMsg, setResetMsg] = useState('')
 
   const [comunidades, setComunidades] = useState([])
   const [estudiantes, setEstudiantes] = useState([])
@@ -231,9 +232,50 @@ function AdminPanel() {
   }
 
   function copiarPassword() { navigator.clipboard.writeText(password); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }
-  function copiarReset() { navigator.clipboard.writeText(nuevoPassword); setCopiadoReset(true); setTimeout(() => setCopiadoReset(false), 2000) }
   function copiarEstPassword() { navigator.clipboard.writeText(estudiantePassword); setCopiadoEst(true); setTimeout(() => setCopiadoEst(false), 2000) }
-  function copiarOk() { navigator.clipboard.writeText(resetOk.password); setCopiadoOk(true); setTimeout(() => setCopiadoOk(false), 2000) }
+  function copiarActual() {
+    if (!passwordActual?.password) return
+    navigator.clipboard.writeText(passwordActual.password)
+    setCopiadoActual(true)
+    setTimeout(() => setCopiadoActual(false), 2000)
+  }
+
+  async function abrirReset(u) {
+    setResetUser(u)
+    setNuevoPassword(generarPassword())
+    setErrorReset(''); setResetMsg(''); setCopiadoActual(false)
+    setEditando(null); setEditandoEst(null); setMoviendo(null)
+    setPasswordActual({ userId: u.id, cargando: true, disponible: false, password: '' })
+
+    const r = await invocar('ver-password', { userId: u.id })
+    setPasswordActual(prev => {
+      if (!prev || prev.userId !== u.id) return prev
+      if (!r.ok) return { userId: u.id, cargando: false, disponible: false, password: '', error: r.mensaje }
+      return { userId: u.id, cargando: false, disponible: !!r.data?.disponible, password: r.data?.password || '' }
+    })
+  }
+
+  function cerrarReset() {
+    setResetUser(null); setNuevoPassword(''); setErrorReset(''); setResetMsg('')
+    setPasswordActual(null); setCopiadoActual(false)
+  }
+
+  async function resetPassword() {
+    if (!resetUser) return
+    const nueva = nuevoPassword.trim()
+    if (nueva.length < 8) { setErrorReset('The password must be at least 8 characters.'); return }
+    setGuardando(true); setErrorReset(''); setResetMsg('')
+    const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
+    if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
+    setPasswordActual({ userId: resetUser.id, cargando: false, disponible: true, password: nueva })
+    setResetMsg(
+      r.data?.guardada === false
+        ? 'Password updated, but it could not be saved for viewing later. Copy it now.'
+        : 'Password updated. Share it with them now.'
+    )
+    setNuevoPassword('')
+    setGuardando(false)
+  }
 
   const esAdmin = perfilActual?.roles.includes('staff_admin')
   const esCoordinator = perfilActual?.roles.includes('volunteer_coordinator')
@@ -278,28 +320,20 @@ function AdminPanel() {
   async function guardarEdicion() {
     if (!editando) return
     setGuardando(true); setErrorEdicion('')
+    const igualesRoles =
+      rolesEditando.length === editando.roles.length &&
+      rolesEditando.every(r => editando.roles.includes(r))
     const r = await invocar('update-user', {
       userId: editando.id,
       nombre: nombreEditando,
       titulo: tituloEditando,
       telefono: telefonoEditando,
       email: emailEditando,
-      roles: rolesEditando
+      ...(igualesRoles ? {} : { roles: rolesEditando })
     })
     if (!r.ok) { setErrorEdicion(r.mensaje); setGuardando(false); return }
     await cargarVoluntarios()
     setEditando(null); setGuardando(false)
-  }
-
-  async function resetPassword() {
-    if (!resetUser) return
-    const nueva = nuevoPassword.trim()
-    if (nueva.length < 8) { setErrorReset('The password must be at least 8 characters.'); return }
-    setGuardando(true); setErrorReset('')
-    const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
-    if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
-    setResetOk({ nombre: resetUser.nombre, password: nueva })
-    setResetUser(null); setNuevoPassword(''); setGuardando(false)
   }
 
   async function marcarInactivo(id, rolesActuales) {
@@ -343,21 +377,56 @@ function AdminPanel() {
           : {}
 
   function renderAvisos() {
+    if (!errorAccion) return null
+    return <p className="ap-error">{errorAccion}</p>
+  }
+
+  function renderPanelPassword(u) {
+    if (resetUser?.id !== u.id) return null
+    const act = passwordActual?.userId === u.id ? passwordActual : null
     return (
-      <>
-        {resetOk && (
-          <div className="ap-success">
-            <p className="ap-success-title">✓ Password updated for {resetOk.nombre}</p>
-            <div className="ap-pw-box" style={{margin:'8px 0'}}>
-              <span className="ap-pw-val">{resetOk.password}</span>
-              <button className="ap-pw-copy" onClick={copiarOk}>{copiadoOk ? '✓ Copied!' : '📋 Copy'}</button>
-            </div>
-            <p className="ap-success-sub">Share it with them now. For security it can't be shown again later. To get a new one, reset it again.</p>
-            <button className="ap-cancel" style={{marginTop:'8px'}} onClick={() => setResetOk(null)}>Dismiss</button>
-          </div>
+      <div className="ap-edit-panel">
+        <p className="ap-edit-title">Password — {u.nombre}</p>
+
+        <label className="ap-label">Current password</label>
+        <div className="ap-pw-box" style={{marginBottom:'8px'}}>
+          <span className="ap-pw-val">
+            {!act || act.cargando ? 'Loading...' : act.disponible ? act.password : 'Not saved yet'}
+          </span>
+          {act?.disponible && (
+            <button className="ap-pw-copy" onClick={copiarActual}>{copiadoActual ? '✓ Copied!' : '📋 Copy'}</button>
+          )}
+        </div>
+
+        {act && !act.cargando && !act.disponible && !act.error && (
+          <p className="ap-info" style={{margin:'0 0 10px'}}>
+            This account was set up before passwords could be viewed. Set a new one below and it will show here from now on.
+          </p>
         )}
-        {errorAccion && <p className="ap-error">{errorAccion}</p>}
-      </>
+        {act?.error && <p className="ap-error">{act.error}</p>}
+        {resetMsg && <p style={{fontSize:'12px', color:'#3B6D11', fontWeight:600, margin:'0 0 10px'}}>✓ {resetMsg}</p>}
+
+        <div className="ap-field">
+          <label className="ap-label">Set a new password (optional)</label>
+          <div style={{display:'flex', gap:'8px'}}>
+            <input
+              className="ap-input" type="text" style={{flex:1}}
+              placeholder="At least 8 characters"
+              value={nuevoPassword}
+              onChange={(e) => setNuevoPassword(e.target.value)}
+            />
+            <button className="ap-pw-copy" onClick={() => setNuevoPassword(generarPassword())}>🎲 Random</button>
+          </div>
+        </div>
+
+        {errorReset && <p className="ap-error">{errorReset}</p>}
+        <div className="ap-edit-btns">
+          <button className="ap-save" onClick={resetPassword} disabled={guardando || !nuevoPassword.trim()}>
+            {guardando ? 'Saving...' : 'Set new password'}
+          </button>
+          <button className="ap-cancel" onClick={cerrarReset}>Close</button>
+        </div>
+      </div>
     )
   }
 
@@ -390,7 +459,11 @@ function AdminPanel() {
                 <input className="ap-input" type="tel" placeholder="+504 9999-9999" value={telefonoEditando} onChange={(e) => setTelefonoEditando(e.target.value)} />
               </div>
             </div>
-            <p className="ap-info" style={{margin:'0 0 8px'}}>If you change the email, they log in with the new one and keep the same password.</p>
+            <p className="ap-info" style={{margin:'0 0 8px'}}>
+              {u.id === perfilActual?.id
+                ? 'After saving, sign in with the new email. Your password stays the same.'
+                : 'Changing the email changes their login. Their password stays the same.'}
+            </p>
             <div className="ap-field" style={{marginTop:'10px'}}>
               <label className="ap-label">Roles</label>
               <div className="ap-roles">
@@ -406,24 +479,7 @@ function AdminPanel() {
             </div>
           </div>
         )}
-        {resetUser?.id === u.id && (
-          <div className="ap-edit-panel">
-            <p className="ap-edit-title">Reset password — {u.nombre}</p>
-            <div className="ap-pw-box" style={{marginBottom:'10px'}}>
-              <span className="ap-pw-val">{nuevoPassword || '—'}</span>
-              <button className="ap-pw-copy" onClick={copiarReset}>{copiadoReset ? '✓ Copied!' : '📋 Copy'}</button>
-            </div>
-            <div className="ap-field">
-              <label className="ap-label">New password</label>
-              <input className="ap-input" type="text" placeholder="Enter new password..." value={nuevoPassword} onChange={(e) => setNuevoPassword(e.target.value)} />
-            </div>
-            {errorReset && <p className="ap-error">{errorReset}</p>}
-            <div className="ap-edit-btns">
-              <button className="ap-save" onClick={resetPassword} disabled={guardando}>{guardando ? 'Resetting...' : 'Reset password'}</button>
-              <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword(''); setErrorReset('') }}>Cancel</button>
-            </div>
-          </div>
-        )}
+        {renderPanelPassword(u)}
         <div className={`ap-vol-row ${editando?.id === u.id ? 'editing' : ''}`}>
           <div className="ap-avatar">{u.nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}</div>
           <div className="ap-vol-info">
@@ -435,9 +491,9 @@ function AdminPanel() {
             </div>
           </div>
           <div className="ap-vol-btns">
-            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo || ''); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setEmailEditando(u.email || ''); setErrorEdicion(''); setResetUser(null) }}>✏️ Edit</button>
+            <button className="ap-btn-edit" onClick={() => { setEditando(u); setRolesEditando(u.roles); setTituloEditando(u.titulo || ''); setNombreEditando(u.nombre); setTelefonoEditando(u.telefono || ''); setEmailEditando(u.email || ''); setErrorEdicion(''); cerrarReset() }}>✏️ Edit</button>
             {puedeResetear && (
-              <button className="ap-btn-reset" onClick={() => { setResetUser(u); setNuevoPassword(generarPassword()); setErrorReset(''); setEditando(null) }}>🔑 Reset</button>
+              <button className="ap-btn-reset" onClick={() => abrirReset(u)}>🔑 Reset</button>
             )}
             {esAdmin && <button className="ap-btn-deact" onClick={() => marcarInactivo(u.id, u.roles)}>Mark inactive</button>}
           </div>
@@ -513,7 +569,7 @@ function AdminPanel() {
                 <span className="ap-pw-val">{password}</span>
                 <button className="ap-pw-copy" onClick={copiarPassword}>{copiado ? '✓ Copied!' : '📋 Copy'}</button>
               </div>
-              <p className="ap-info">Share this password with the volunteer so they can log in.</p>
+              <p className="ap-info">Share this password with the volunteer so they can log in. You can see it again later with 🔑 Reset.</p>
             </div>
             {errorMsg && <p className="ap-error">{errorMsg}</p>}
             <button className="ap-submit" onClick={agregarVoluntario} disabled={cargando}>{cargando ? 'Adding...' : 'Add volunteer'}</button>
@@ -693,24 +749,7 @@ function AdminPanel() {
                               <button className="ap-cancel" style={{padding:'6px 12px'}} onClick={() => setMoviendo(null)}>Cancel</button>
                             </div>
                           )}
-                          {resetUser?.id === e.id && (
-                            <div className="ap-edit-panel">
-                              <p className="ap-edit-title">Reset password — {e.nombre}</p>
-                              <div className="ap-pw-box" style={{marginBottom:'10px'}}>
-                                <span className="ap-pw-val">{nuevoPassword || '—'}</span>
-                                <button className="ap-pw-copy" onClick={copiarReset}>{copiadoReset ? '✓ Copied!' : '📋 Copy'}</button>
-                              </div>
-                              <div className="ap-field">
-                                <label className="ap-label">New password</label>
-                                <input className="ap-input" type="text" placeholder="Enter new password..." value={nuevoPassword} onChange={(ev) => setNuevoPassword(ev.target.value)} />
-                              </div>
-                              {errorReset && <p className="ap-error">{errorReset}</p>}
-                              <div className="ap-edit-btns">
-                                <button className="ap-save" onClick={resetPassword} disabled={guardando}>{guardando ? 'Resetting...' : 'Reset password'}</button>
-                                <button className="ap-cancel" onClick={() => { setResetUser(null); setNuevoPassword(''); setErrorReset('') }}>Cancel</button>
-                              </div>
-                            </div>
-                          )}
+                          {renderPanelPassword(e)}
                           {editandoEst === e.id && (
                             <div className="ap-edit-panel">
                               <p className="ap-edit-title">Editing — {e.nombre}</p>
@@ -728,7 +767,7 @@ function AdminPanel() {
                                 <label className="ap-label">Email (login)</label>
                                 <input className="ap-input" type="email" value={emailEstEditando} onChange={(ev) => setEmailEstEditando(ev.target.value)} />
                               </div>
-                              <p className="ap-info" style={{margin:'0 0 8px'}}>If you change the email, they log in with the new one and keep the same password.</p>
+                              <p className="ap-info" style={{margin:'0 0 8px'}}>Changing the email changes their login. Their password stays the same.</p>
                               {errorEdicion && <p className="ap-error">{errorEdicion}</p>}
                               <div className="ap-edit-btns">
                                 <button className="ap-save" onClick={() => guardarEdicionEstudiante(e)} disabled={guardando}>{guardando ? 'Saving...' : 'Save changes'}</button>
@@ -744,9 +783,9 @@ function AdminPanel() {
                               {e.email && <p style={{fontSize:'11px', color:'#aaa', margin:0}}>{e.email}</p>}
                             </div>
                             <div className="ap-vol-btns">
-                              <button className="ap-btn-edit" onClick={() => { setEditandoEst(e.id); setNombreEstEditando(e.nombre); setTelefonoEstEditando(e.telefono || ''); setEmailEstEditando(e.email || ''); setErrorEdicion(''); setMoviendo(null); setResetUser(null) }}>✏️ Edit</button>
-                              <button className="ap-btn-edit" onClick={() => { setMoviendo(e.id); setComunidadDestino(''); setResetUser(null) }}>Move</button>
-                              <button className="ap-btn-reset" onClick={() => { setResetUser(e); setNuevoPassword(generarPassword()); setErrorReset(''); setMoviendo(null) }}>🔑 Reset</button>
+                              <button className="ap-btn-edit" onClick={() => { setEditandoEst(e.id); setNombreEstEditando(e.nombre); setTelefonoEstEditando(e.telefono || ''); setEmailEstEditando(e.email || ''); setErrorEdicion(''); setMoviendo(null); cerrarReset() }}>✏️ Edit</button>
+                              <button className="ap-btn-edit" onClick={() => { setMoviendo(e.id); setComunidadDestino(''); cerrarReset() }}>Move</button>
+                              <button className="ap-btn-reset" onClick={() => abrirReset(e)}>🔑 Reset</button>
                               <button className="ap-btn-deact" onClick={() => marcarEstudianteInactivo(e.id)}>Inactive</button>
                               {esAdmin && <button className="ap-btn-delete" onClick={() => eliminarEstudiantePermanente(e)}>Delete</button>}
                             </div>

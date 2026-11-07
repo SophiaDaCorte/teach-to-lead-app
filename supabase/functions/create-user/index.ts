@@ -1,4 +1,8 @@
-import { corsHeaders, respuesta, clienteAdmin, identificar, rolesPermitidos, emailValido } from '../_shared/permisos.ts'
+
+import {
+  corsHeaders, respuesta, clienteAdmin, identificar, rolesPermitidos, emailValido,
+} from '../_shared/permisos.ts'
+import { guardarPassword } from '../_shared/cifrado.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -59,6 +63,8 @@ Deno.serve(async (req) => {
       })
       if (horasError) throw horasError
     }
+
+    await guardarPassword(admin, authData.user.id, password)
 
     return respuesta({ success: true, userId: userIdCreado })
   } catch (error) {
