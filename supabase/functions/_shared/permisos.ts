@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 export const corsHeaders = {
@@ -23,12 +24,17 @@ export type Llamante = { id: string; roles: string[] }
 
 export async function identificar(req: Request, admin: ReturnType<typeof clienteAdmin>): Promise<Llamante | null> {
   const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim()
-  if (!token) return null
+  if (!token) { console.error('identificar: no token'); return null }
+
   const { data, error } = await admin.auth.getUser(token)
-  if (error || !data?.user) return null
-  const { data: perfil } = await admin
+  if (error || !data?.user) { console.error('identificar: invalid session:', error?.message); return null }
+
+  const { data: perfil, error: errPerfil } = await admin
     .from('perfiles').select('id, roles').eq('id', data.user.id).maybeSingle()
-  if (!perfil || !Array.isArray(perfil.roles) || perfil.roles.includes('inactivo')) return null
+  if (!perfil) { console.error('identificar: no profile for', data.user.id, errPerfil?.message); return null }
+  if (!Array.isArray(perfil.roles)) { console.error('identificar: roles is not an array for', data.user.id); return null }
+  if (perfil.roles.includes('inactivo')) { console.error('identificar: profile is inactive', data.user.id); return null }
+
   return { id: perfil.id, roles: perfil.roles }
 }
 

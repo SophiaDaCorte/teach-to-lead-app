@@ -38,7 +38,16 @@ async function mensajeError(error, data) {
 }
 
 async function invocar(nombre, body) {
-  const { data, error } = await supabase.functions.invoke(nombre, { body })
+  const { data: u, error: errSesion } = await supabase.auth.getUser()
+  if (errSesion || !u?.user) {
+    return { ok: false, mensaje: 'SESSION CHECK FAILED: your login is no longer valid. Sign out and sign in again.' }
+  }
+  const { data: s } = await supabase.auth.getSession()
+  const token = s.session?.access_token
+  const { data, error } = await supabase.functions.invoke(nombre, {
+    body,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
+  })
   if (error || data?.error) return { ok: false, mensaje: await mensajeError(error, data) }
   return { ok: true, data }
 }
