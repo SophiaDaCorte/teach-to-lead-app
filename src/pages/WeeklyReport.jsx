@@ -7,6 +7,13 @@ import './WeeklyReport.css'
 
 const APP_START_DATE = '2026-08-18'
 
+function aIso(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function getStartOfWeek(date) {
   const d = new Date(date)
   const day = d.getDay()
@@ -67,15 +74,27 @@ function WeeklyReport() {
         .eq('user_id', session.session.user.id)
         .order('semana_inicio', { ascending: false })
 
+      // Primera semana: la que configura el admin, o la del 18 de agosto si no hay configuración
+      const { data: cfg } = await supabase
+        .from('configuracion').select('valor')
+        .eq('clave', 'weekly_report_start').maybeSingle()
+      let appStart = getStartOfWeek(new Date((cfg?.valor || APP_START_DATE) + 'T12:00:00'))
+
+      // Nadie ve como faltantes las semanas anteriores a la creación de su cuenta
+      const creada = session.session.user.created_at
+      if (creada) {
+        const semanaCuenta = getStartOfWeek(new Date(creada))
+        if (semanaCuenta > appStart) appStart = semanaCuenta
+      }
+
       const hoy = new Date()
       const semanaActual = getStartOfWeek(hoy)
-      const appStart = getStartOfWeek(new Date(APP_START_DATE + 'T12:00:00'))
 
       const semanasGeneradas = []
       let s = new Date(semanaActual)
 
       while (s >= appStart) {
-        const isoDate = s.toISOString().split('T')[0]
+        const isoDate = aIso(s)
         const reporte = (reportes || []).find(r => r.semana_inicio === isoDate)
         const esSemanaActual = s.getTime() === semanaActual.getTime()
         semanasGeneradas.push({
@@ -164,7 +183,6 @@ function WeeklyReport() {
   }
 
   const bonusDisponible = selectedSemana ? isBeforeDeadline(selectedSemana.fecha) : false
-  const mostrarFormulario = !reporteActual || editando
 
   return (
     <div className="page-wrapper">

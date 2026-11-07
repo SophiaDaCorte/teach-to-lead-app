@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import ReinicioSemanas from '../components/ReinicioSemanas.jsx'
 import { Doodle, useDoodles } from '../components/Doodles.jsx'
 import '../components/PageBackground.css'
 import './AdminReports.css'
@@ -150,7 +151,12 @@ function AdminReports() {
           <button className={`ar-tab ${tab === 'observations' ? 'active' : ''}`} onClick={() => setTab('observations')}>
             Observations {obsUnread > 0 && <span className="ar-badge">{obsUnread} unread</span>}
           </button>
+          <button className={`ar-tab ${tab === 'weeks' ? 'active' : ''}`} onClick={() => setTab('weeks')}>
+            Weeks
+          </button>
         </div>
+
+        {tab === 'weeks' && <ReinicioSemanas />}
 
         {(tab === 'pending' || tab === 'approved') && (
           <div>
