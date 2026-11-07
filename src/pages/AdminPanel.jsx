@@ -547,7 +547,7 @@ function AdminPanel() {
       </div>
       <div className="ap-content">
         <button className="ap-back" onClick={() => navigate('/dashboard')}>← Back</button>
-        <h1 className="ap-title">Admin panel <span style={{fontSize:'12px', color:'white', background:'#b91c1c', padding:'2px 8px', borderRadius:'999px', fontWeight:600, verticalAlign:'middle'}}>v3</span></h1>
+        <h1 className="ap-title">Admin panel</h1>
 
         <div className="ap-tabs">
           <button onClick={() => setTab('add')} className={`ap-tab ${tab === 'add' ? 'active' : ''}`}>Add volunteer</button>
