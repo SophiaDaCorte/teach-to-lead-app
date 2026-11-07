@@ -6,8 +6,16 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Motivo del último rechazo. Se agrega al mensaje de error para poder verlo en pantalla.
+let motivo = ''
+
 export function respuesta(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
+  let salida = body
+  if (status === 401 && motivo && body && typeof body === 'object') {
+    const b = body as { error?: string }
+    if (b.error) salida = { ...b, error: `${b.error} (reason: ${motivo})` }
+  }
+  return new Response(JSON.stringify(salida), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
@@ -23,17 +31,26 @@ export function clienteAdmin() {
 export type Llamante = { id: string; roles: string[] }
 
 export async function identificar(req: Request, admin: ReturnType<typeof clienteAdmin>): Promise<Llamante | null> {
+  motivo = ''
   const token = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim()
-  if (!token) { console.error('identificar: no token'); return null }
+  if (!token) { motivo = 'no login token was sent'; console.error('identificar:', motivo); return null }
 
   const { data, error } = await admin.auth.getUser(token)
-  if (error || !data?.user) { console.error('identificar: invalid session:', error?.message); return null }
+  if (error || !data?.user) {
+    motivo = `login not accepted by the server: ${error?.message || 'unknown'}`
+    console.error('identificar:', motivo)
+    return null
+  }
 
   const { data: perfil, error: errPerfil } = await admin
     .from('perfiles').select('id, roles').eq('id', data.user.id).maybeSingle()
-  if (!perfil) { console.error('identificar: no profile for', data.user.id, errPerfil?.message); return null }
-  if (!Array.isArray(perfil.roles)) { console.error('identificar: roles is not an array for', data.user.id); return null }
-  if (perfil.roles.includes('inactivo')) { console.error('identificar: profile is inactive', data.user.id); return null }
+  if (!perfil) {
+    motivo = `no profile row for user ${data.user.id.slice(0, 8)} ${errPerfil?.message || ''}`.trim()
+    console.error('identificar:', motivo)
+    return null
+  }
+  if (!Array.isArray(perfil.roles)) { motivo = 'roles is not a list'; console.error('identificar:', motivo); return null }
+  if (perfil.roles.includes('inactivo')) { motivo = 'profile is inactive'; console.error('identificar:', motivo); return null }
 
   return { id: perfil.id, roles: perfil.roles }
 }
