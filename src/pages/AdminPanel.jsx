@@ -276,28 +276,37 @@ function AdminPanel() {
     setGuardando(true); setErrorReset(''); setResetMsg('')
 
     const esMiCuenta = resetUser.id === perfilActual?.id
-    let miEmail = null
-    if (esMiCuenta) {
-      const { data: s } = await supabase.auth.getSession()
-      miEmail = s.session?.user?.email || perfilActual?.email || null
-    }
-
-    const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
-    if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
-
-    let aviso = r.data?.guardada === false
-      ? 'Password updated, but it could not be saved for viewing later. Copy it now.'
-      : 'Password updated. Share it with them now.'
+    let aviso = ''
 
     if (esMiCuenta) {
-      if (miEmail) {
-        const { error: errLogin } = await supabase.auth.signInWithPassword({ email: miEmail, password: nueva })
-        aviso = errLogin
-          ? 'Password updated, but your session ended. Sign out and sign in again with the new password.'
-          : 'Password updated. You were kept signed in.'
-      } else {
-        aviso = 'Password updated, but your session ended. Sign out and sign in again with the new password.'
+      // Tu propia contraseña se cambia desde tu sesión, así no se cierra.
+      const { error: errPass } = await supabase.auth.updateUser({ password: nueva })
+      const misma = errPass && (errPass.code === 'same_password' || /different from the old/i.test(errPass.message || ''))
+      if (errPass && !misma) {
+        setErrorReset(errPass.message || 'Could not change your password.')
+        setGuardando(false)
+        return
       }
+      const r = await invocar('reset-password', { userId: resetUser.id, password: nueva, soloGuardar: true })
+      if (!r.ok) {
+        setErrorReset(
+          misma
+            ? `That is already your password, but it could not be saved for viewing: ${r.mensaje}`
+            : `Your password was changed, but it could not be saved for viewing later: ${r.mensaje}`
+        )
+        setGuardando(false)
+        return
+      }
+      aviso = misma
+        ? 'That is your current password. It is now saved for viewing.'
+        : 'Password updated. You stay signed in.'
+      if (r.data?.guardada === false) aviso = 'Password updated, but it could not be saved for viewing later. Copy it now.'
+    } else {
+      const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
+      if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
+      aviso = r.data?.guardada === false
+        ? 'Password updated, but it could not be saved for viewing later. Copy it now.'
+        : 'Password updated. Share it with them now.'
     }
 
     setPasswordActual({ userId: resetUser.id, cargando: false, disponible: true, password: nueva })
@@ -538,7 +547,7 @@ function AdminPanel() {
       </div>
       <div className="ap-content">
         <button className="ap-back" onClick={() => navigate('/dashboard')}>← Back</button>
-        <h1 className="ap-title">Admin panel</h1>
+        <h1 className="ap-title">Admin panel <span style={{fontSize:'10px', color:'#bbb', fontWeight:400}}>v3</span></h1>
 
         <div className="ap-tabs">
           <button onClick={() => setTab('add')} className={`ap-tab ${tab === 'add' ? 'active' : ''}`}>Add volunteer</button>
