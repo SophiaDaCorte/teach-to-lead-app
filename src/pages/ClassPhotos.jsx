@@ -241,12 +241,20 @@ function ClassPhotos() {
   }
 
   async function eliminarEnvio(grupo) {
+    setErrorRevision('')
+    const { data, error: e } = await supabase
+      .from('fotos_clase').delete()
+      .in('id', grupo.fotos.map(f => f.id)).select('id')
+    if (e || !data || data.length === 0) {
+      setErrorRevision(e?.message || "The submission couldn't be deleted.")
+      return
+    }
     if (grupo.revisado && grupo.horas > 0) {
-      await ajustarHoras(grupo.tutor_id, -grupo.horas)
+      const eh = await ajustarHoras(grupo.tutor_id, -grupo.horas)
+      if (eh) setErrorRevision(eh.message)
     }
     const rutas = grupo.fotos.map(f => f.ruta).filter(Boolean)
     if (rutas.length > 0) await supabase.storage.from('fotos-clase').remove(rutas)
-    await supabase.from('fotos_clase').delete().in('id', grupo.fotos.map(f => f.id))
     await cargarFotos()
   }
 
@@ -398,7 +406,7 @@ function ClassPhotos() {
                     <button className="cp-btn-ghost" onClick={() => reabrir(g)}>Mark as new</button>
                   </>
                 )}
-                {(esRevisor || g.tutor_id === userId) && (
+                {(esRevisor || (g.tutor_id === userId && !g.revisado)) && (
                   <button className="cp-btn-del" onClick={() => eliminarEnvio(g)} aria-label="Delete submission">
                     <i className="ti ti-trash" aria-hidden="true"></i>
                   </button>
