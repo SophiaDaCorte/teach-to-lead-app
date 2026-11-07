@@ -265,14 +265,34 @@ function AdminPanel() {
     const nueva = nuevoPassword.trim()
     if (nueva.length < 8) { setErrorReset('The password must be at least 8 characters.'); return }
     setGuardando(true); setErrorReset(''); setResetMsg('')
+
+    const esMiCuenta = resetUser.id === perfilActual?.id
+    let miEmail = null
+    if (esMiCuenta) {
+      const { data: s } = await supabase.auth.getSession()
+      miEmail = s.session?.user?.email || perfilActual?.email || null
+    }
+
     const r = await invocar('reset-password', { userId: resetUser.id, password: nueva })
     if (!r.ok) { setErrorReset(r.mensaje); setGuardando(false); return }
+
+    let aviso = r.data?.guardada === false
+      ? 'Password updated, but it could not be saved for viewing later. Copy it now.'
+      : 'Password updated. Share it with them now.'
+
+    if (esMiCuenta) {
+      if (miEmail) {
+        const { error: errLogin } = await supabase.auth.signInWithPassword({ email: miEmail, password: nueva })
+        aviso = errLogin
+          ? 'Password updated, but your session ended. Sign out and sign in again with the new password.'
+          : 'Password updated. You were kept signed in.'
+      } else {
+        aviso = 'Password updated, but your session ended. Sign out and sign in again with the new password.'
+      }
+    }
+
     setPasswordActual({ userId: resetUser.id, cargando: false, disponible: true, password: nueva })
-    setResetMsg(
-      r.data?.guardada === false
-        ? 'Password updated, but it could not be saved for viewing later. Copy it now.'
-        : 'Password updated. Share it with them now.'
-    )
+    setResetMsg(aviso)
     setNuevoPassword('')
     setGuardando(false)
   }
