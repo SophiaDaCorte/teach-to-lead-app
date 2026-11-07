@@ -31,22 +31,14 @@ function Announcements() {
 
         const roles = perfilData.roles
 
-        let filtro = []
-        if (roles.includes('staff_admin')) {
-          filtro = ['all', 'staff', 'marketing', 'tutors', 'creation']
-        } else if (roles.includes('staff_marketing')) {
-          filtro = ['all', 'marketing']
-        } else if (roles.includes('volunteer_coordinator')) {
-          filtro = ['all', 'staff', 'tutors', 'creation']
-        } else if (roles.includes('staff_regular') || roles.includes('director_of_programs')) {
-          filtro = ['all', 'staff']
-        } else if (roles.includes('tutors')) {
-          filtro = ['all', 'tutors']
-        } else if (roles.includes('creation')) {
-          filtro = ['all', 'creation']
-        } else if (roles.includes('marketing_interns')) {
-          filtro = ['all', 'marketing']
-        }
+        const grupos = new Set(['all'])
+        if (roles.includes('staff_admin')) ['staff', 'marketing', 'tutors', 'creation'].forEach(g => grupos.add(g))
+        if (roles.includes('volunteer_coordinator')) ['staff', 'tutors', 'creation'].forEach(g => grupos.add(g))
+        if (roles.includes('staff_regular') || roles.includes('director_of_programs') || roles.includes('director_of_schools')) grupos.add('staff')
+        if (roles.includes('staff_marketing') || roles.includes('marketing_interns')) grupos.add('marketing')
+        if (roles.includes('tutors')) grupos.add('tutors')
+        if (roles.includes('creation')) grupos.add('creation')
+        const filtro = [...grupos]
 
         const { data } = await supabase
           .from('announcements')
@@ -104,17 +96,23 @@ function Announcements() {
       .from('announcements')
       .insert({ creado_por: userId, titulo, contenido, dirigido_a: dirigidoA })
       .select()
-    if (!error) {
-      setAnuncios([data[0], ...anuncios])
-      setTitulo("")
-      setContenido("")
-      setDirigidoA([])
-      setMostrarForm(false)
+    if (error) {
+      window.alert(error.message || 'Could not publish the announcement.')
+      return
     }
+    setAnuncios([data[0], ...anuncios])
+    setTitulo("")
+    setContenido("")
+    setDirigidoA([])
+    setMostrarForm(false)
   }
 
   async function eliminarAnuncio(id) {
-    await supabase.from('announcements').delete().eq('id', id)
+    const { error } = await supabase.from('announcements').delete().eq('id', id)
+    if (error) {
+      window.alert(error.message || 'Could not delete the announcement.')
+      return
+    }
     setAnuncios(anuncios.filter(a => a.id !== id))
   }
 
@@ -144,7 +142,7 @@ function Announcements() {
       </div>
 
       <div className="ann-content">
-        <button className="ann-back" onClick={() => navigate('/dashboard')}>
+        <button className="ann-back" onClick={() => navigate(perfil?.roles?.includes('estudiante') ? '/estudiantes' : '/dashboard')}>
           ← Back
         </button>
 

@@ -23,14 +23,12 @@ function formatWeek(dateStr) {
   return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
 }
 
+// Límite: el lunes siguiente a las 9am MST (UTC-7 todo el año).
+// Es la misma regla que aplica el servidor, así lo que ves coincide con lo que se guarda.
 function isBeforeDeadline(weekStart) {
-  const now = new Date()
-  const monday = new Date(weekStart + 'T12:00:00')
-  monday.setDate(monday.getDate() + 7)
-  monday.setHours(9, 0, 0, 0)
-  const mstOffset = 7 * 60
-  const utcMonday = new Date(monday.getTime() + mstOffset * 60000)
-  return now < utcMonday
+  const [y, m, d] = weekStart.split('-').map(Number)
+  const limite = Date.UTC(y, m - 1, d + 7, 16, 0, 0)
+  return Date.now() < limite
 }
 
 function WeeklyReport() {
@@ -72,10 +70,10 @@ function WeeklyReport() {
       const hoy = new Date()
       const semanaActual = getStartOfWeek(hoy)
       const appStart = getStartOfWeek(new Date(APP_START_DATE + 'T12:00:00'))
-      
+
       const semanasGeneradas = []
       let s = new Date(semanaActual)
-      
+
       while (s >= appStart) {
         const isoDate = s.toISOString().split('T')[0]
         const reporte = (reportes || []).find(r => r.semana_inicio === isoDate)
@@ -112,8 +110,6 @@ function WeeklyReport() {
     if (!queHice.trim()) return
     setEnviando(true)
 
-    const aTime = isBeforeDeadline(selectedSemana.fecha)
-
     const payload = {
       user_id: userId,
       nombre_voluntario: perfil?.nombre,
@@ -122,45 +118,48 @@ function WeeklyReport() {
       checklist_completado: checklist,
       desafios,
       proxima_semana: proximaSemana,
-      enviado_a_tiempo: aTime,
       estado: 'pendiente',
       updated_at: new Date().toISOString()
     }
 
-    let error
+    let error = null
     if (reporteActual) {
-      const { error: e } = await supabase
+      const { data: filas, error: e } = await supabase
         .from('weekly_reports')
         .update(payload)
         .eq('id', reporteActual.id)
-      error = e
+        .select()
+      error = e || ((!filas || filas.length === 0)
+        ? { message: 'This report was already approved and can no longer be edited.' }
+        : null)
     } else {
-      const { error: e } = await supabase
-        .from('weekly_reports')
-        .insert(payload)
+      const { error: e } = await supabase.from('weekly_reports').insert(payload)
       error = e
     }
 
-    if (!error) {
-      setExito(true)
-      const { data: reportes } = await supabase
-        .from('weekly_reports')
-        .select('*')
-        .eq('user_id', userId)
-        .order('semana_inicio', { ascending: false })
-
-      const semanasActualizadas = semanas.map(s => {
-        const reporte = (reportes || []).find(r => r.semana_inicio === s.fecha)
-        return { ...s, reporte: reporte || null, estado: reporte ? 'done' : s.estado }
-      })
-
-      setSemanas(semanasActualizadas)
-      const updated = semanasActualizadas.find(s => s.fecha === selectedSemana.fecha)
-      setSelectedSemana(updated)
-      setReporteActual(updated?.reporte)
-      setEditando(false)
+    if (error) {
+      window.alert(error.message || 'Could not save the report.')
+      setEnviando(false)
+      return
     }
 
+    setExito(true)
+    const { data: reportes } = await supabase
+      .from('weekly_reports')
+      .select('*')
+      .eq('user_id', userId)
+      .order('semana_inicio', { ascending: false })
+
+    const semanasActualizadas = semanas.map(s => {
+      const reporte = (reportes || []).find(r => r.semana_inicio === s.fecha)
+      return { ...s, reporte: reporte || null, estado: reporte ? 'done' : s.estado }
+    })
+
+    setSemanas(semanasActualizadas)
+    const updated = semanasActualizadas.find(s => s.fecha === selectedSemana.fecha)
+    setSelectedSemana(updated)
+    setReporteActual(updated?.reporte)
+    setEditando(false)
     setEnviando(false)
   }
 
@@ -205,15 +204,17 @@ function WeeklyReport() {
                     ? `✅ Approved — ${reporteActual.enviado_a_tiempo ? '+2 hours added' : '+1 hour added'}`
                     : 'Pending admin approval'}
                 </p>
-                <button className="wr-edit-btn" onClick={() => {
-                  setEditando(true)
-                  setQueHice(reporteActual.que_hice || '')
-                  setChecklist(reporteActual.checklist_completado || '')
-                  setDesafios(reporteActual.desafios || '')
-                  setProximaSemana(reporteActual.proxima_semana || '')
-                }}>
-                  Edit report
-                </button>
+                {reporteActual.estado !== 'aprobado' && (
+                  <button className="wr-edit-btn" onClick={() => {
+                    setEditando(true)
+                    setQueHice(reporteActual.que_hice || '')
+                    setChecklist(reporteActual.checklist_completado || '')
+                    setDesafios(reporteActual.desafios || '')
+                    setProximaSemana(reporteActual.proxima_semana || '')
+                  }}>
+                    Edit report
+                  </button>
+                )}
               </div>
             ) : selectedSemana.estado === 'pending' && !editando ? (
               <div className="wr-missing">
